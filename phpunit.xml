@@ -11,6 +11,14 @@
         <testsuite name="SlimSkeleton">
             <file>tests/testTo.php</file>
             <file>tests/testFrom.php</file>
+            <file>tests/testCc.php</file>
+            <file>tests/testBcc.php</file>
+            <file>tests/testReply.php</file>
+            <file>tests/testSubject.php</file>
+            <file>tests/testBody.php</file>
+
+            <!-- <file>tests/testUtf8.php</file> -->
+            <!-- <file>tests/testAttach.php</file> -->
         </testsuite>
     </testsuites>
     <filter>
