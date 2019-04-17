@@ -1,10 +1,10 @@
 <?php
 /**
- * 本当に使える日本語メール送信関数
+ * ちゃんと使える日本語メール送信関数
  *
  * $result = jp_send_mail([
  *     'to'       => '', // To※
- *     'from'     => '', // From※
+ *     'from'     => '', // From
  *     'subject'  => '', // Subject
  *     'body'     => '', // 本文
  *     'cc'       => '', // CC※
