@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit
+    colors="true"
+    verbose="false">
+>
+    <php>
+        <!-- <env name="SHOW_AUTO_INCREMENT_RESET" value="true" /> -->
+    </php>
+    <testsuites>
+        <testsuite name="SlimSkeleton">
+            <file>tests/testTo.php</file>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <file>jp_send_mail.php</file>
+        </whitelist>
+    </filter>
+</phpunit>

@@ -1,0 +1,8 @@
+[mysqld]
+character-set-server = <__MYSQL_CHARSET__>
+
+[mysqldump]
+default-character-set = <__MYSQL_CHARSET__>
+
+[client]
+default-character-set = <__MYSQL_CHARSET__>
