@@ -32,9 +32,9 @@ function jp_send_mail($args)
 
     // オリジナルの言語環境を保管して変更
     $original_encoding = mb_internal_encoding();
-    $original_language = mb_language();
-    mb_language('Japanese');
-    mb_internal_encoding($encoding);
+    // $original_language = mb_language();
+    // mb_language('Japanese');
+    // mb_internal_encoding($encoding);
 
     // 変数定義
     $headers = array();
@@ -91,15 +91,6 @@ function jp_send_mail($args)
         }
     }
 
-var_dump(array(
-    $args['to'],
-    $args['subject'],
-    "\n".$args['body'],
-    implode("\r\n", $headers),
-    implode(' ', $parameters)
-
-));
-
     // メール配信実行
     $result = mail(
         $args['to'],
@@ -109,9 +100,9 @@ var_dump(array(
         implode(' ', $parameters)
     );
 
-    // オリジナルの言語環境に戻す
-    mb_internal_encoding($original_encoding);
-    mb_language($original_language);
+    // // オリジナルの言語環境に戻す
+    // mb_internal_encoding($original_encoding);
+    // mb_language($original_language);
 
     return $result;
 }
