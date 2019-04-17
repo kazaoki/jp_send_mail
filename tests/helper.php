@@ -20,11 +20,15 @@ function mail_get_contents($maildev_key, $encoding='ISO-2022-JP-MS')
                 'decode_headers' => true,
             ));
             if($maildev_key===@$structure->headers['x-maildev-key']) {
-                foreach(array('from', 'to', 'cc', 'bcc', 'reply-to', 'subject') as $key) {
+                foreach(array('to', 'from', 'cc', 'bcc', 'reply-to', 'subject') as $key) {
                     if(!@$structure->headers[$key]) continue;
-                    $structure->headers[$key] = mb_convert_encoding(mb_decode_mimeheader($structure->headers[$key]), mb_internal_encoding(), $encoding);
+                    if(strtolower(mb_internal_encoding())!==strtolower($encoding)) {
+                        $structure->headers[$key] = mb_convert_encoding(mb_decode_mimeheader($structure->headers[$key]), mb_internal_encoding(), $encoding);
+                    }
                 }
-                $structure->body = mb_convert_encoding(mb_decode_mimeheader($structure->body), mb_internal_encoding(), $encoding);
+                if(strtolower(mb_internal_encoding())!==strtolower($encoding)) {
+                    $structure->body = mb_convert_encoding(mb_decode_mimeheader($structure->body), mb_internal_encoding(), $encoding);
+                }
                 return $structure;
             }
         }
