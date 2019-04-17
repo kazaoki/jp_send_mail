@@ -12,6 +12,7 @@
  * $args['f']        ... -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
  * $args['encoding'] ... エンコード。未指定なら ISO-2022-JP-MS
  * $args['headers']  ... 追加ヘッダー配列を指定します。
+ * $args['files']    ... 配列で添付ファイルを指定してください。key=>value指定でファイル名指定可能です。
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
 function jp_send_mail($args)
@@ -102,13 +103,6 @@ function jp_send_mail($args)
         $parameters[] = '-f '.$args['f'];
     }
 
-    // Content-Type追加
-    if('ISO-2022-JP-MS'===$encoding) { # ISO-2022-JP-MS のときは ISO-2022-JP として。
-        $headers[] = 'Content-Type: text/plain; charset=ISO-2022-JP';
-    } else {
-        $headers[] = 'Content-Type: text/plain; charset='.$encoding;
-    }
-
     // 追加ヘッダー
     if(@$args['headers'] && is_array($args['headers'])) {
         foreach($args['headers'] as $key=>$value) {
@@ -116,11 +110,60 @@ function jp_send_mail($args)
         }
     }
 
+    // 添付ファイル
+    if(@$args['files'] && is_array($args['files']) && count($args['files'])) {
+
+        // ヘッダー追加
+        $boundary = '----=_Boundary_' . uniqid(rand(1000,9999) . '_') . '_';
+        $headers[] = 'Content-Type: multipart/mixed; boundary="'.$boundary.'"';
+        $headers[] = 'MIME-Version: 1.0';
+        $headers[] = 'Content-Transfer-Encoding: 7bit';
+
+        // 本文追加
+        $args['body'] =
+            '--' . $boundary . "\n".
+            (
+                ('ISO-2022-JP-MS'===$encoding)
+                    ? 'Content-Type: text/plain; charset=ISO-2022-JP'
+                    : 'Content-Type: text/plain; charset=' . $encoding
+            ) . "\n" .
+            'Content-Transfer-Encoding: 7bit' . "\n".
+            "\n".
+            $args['body']."\n\n"
+        ;
+
+        // ファイル展開
+        foreach($args['files'] as $key=>$value) {
+            $filename = 'integer'===gettype($key) ? basename($value) : $key;
+            $filename = mb_convert_encoding($filename, $encoding, $original_encoding);
+            $filename = '=?ISO-2022-JP?B?' . base64_encode($filename) . '?=';
+            $filepath = $value;
+            // var_dump(array($filename, $filepath));
+            $args['body'] .= "--{$boundary}\n";
+            $args['body'] .= "Content-Type: application/octet-stream; name=\"{$filename}\"\n";
+            $args['body'] .= "Content-Transfer-Encoding: base64\n" ;
+            $args['body'] .= "Content-Disposition: attachment; filename=\"{$filename}\"\n\n";
+            $args['body'] .= chunk_split(base64_encode(file_get_contents($filepath))) . "\n\n";
+        }
+        $args['body'] .= "--{$boundary}--\n";
+
+    } else {
+        // Content-Type追加（添付なしメール）
+        if('ISO-2022-JP-MS'===$encoding) { # ISO-2022-JP-MS のときは ISO-2022-JP として。
+            $headers[] = 'Content-Type: text/plain; charset=ISO-2022-JP';
+        } else {
+            $headers[] = 'Content-Type: text/plain; charset='.$encoding;
+        }
+
+        // 頭に改行（見やすくするためだけ）
+        $args['body'] = "\n" . $args['body'];
+    }
+
     // メール配信実行
     $result = mail(
         $args['to'],
         $args['subject'],
-        "\n".$args['body'],
+        $args['body'],
         implode("\r\n", $headers),
         implode(' ', $parameters)
     );

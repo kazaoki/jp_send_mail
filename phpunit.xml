@@ -19,8 +19,7 @@
             <file>tests/testHeaders.php</file>
             <file>tests/testEtc.php</file>
             <file>tests/testUtf8.php</file>
-
-            <!-- <file>tests/testAttach.php</file> -->
+            <file>tests/testFiles.php</file>
         </testsuite>
     </testsuites>
     <filter>
