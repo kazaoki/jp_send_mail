@@ -1,18 +1,20 @@
 <?php
 /**
- * 文字コード「ISO-2022-JP-MS」を使ったメール送信関数
+ * 本当に使える日本語メール送信関数
  *
- * $args['to']       ... To※
- * $args['from']     ... From※
- * $args['subject']  ... Subject
- * $args['body']     ... 本文
- * $args['cc']       ... CC※
- * $args['bcc']      ... BCC※
- * $args['reply']    ... Reply-To
- * $args['f']        ... -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
- * $args['encoding'] ... エンコード。未指定なら ISO-2022-JP-MS
- * $args['headers']  ... 追加ヘッダー配列を指定します。
- * $args['files']    ... 配列で添付ファイルを指定してください。key=>value指定でファイル名指定可能です。
+ * $result = jp_send_mail([
+ *     'to'       => '', // To※
+ *     'from'     => '', // From※
+ *     'subject'  => '', // Subject
+ *     'body'     => '', // 本文
+ *     'cc'       => '', // CC※
+ *     'bcc'      => '', // BCC※
+ *     'reply'    => '', // Reply-To
+ *     'f'        => '', // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
+ *     'encoding' => '', // エンコード。未指定なら ISO-2022-JP-MS
+ *     'headers'  => '', // 追加ヘッダー配列を指定します。
+ *     'files'    => '', // 配列で添付ファイルを指定してください。key=>value指定でファイル名指定可能です。
+ * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
 function jp_send_mail($args)
@@ -24,8 +26,7 @@ function jp_send_mail($args)
 
     // メールアドレスのDNSチェック
     $func_is_mail = function($mail) {
-		$pair = explode('@', $mail);
-        $host = str_replace(array('[', ']'), '', $pair[1]);
+        $host = str_replace(array('[', ']'), '', substr($mail, strpos($mail, '@') + 1));
         return (checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'));
     };
 
@@ -41,38 +42,22 @@ function jp_send_mail($args)
 
     // メールアドレス処理
     foreach(array('to', 'from', 'cc', 'bcc', 'reply') as $key) {
-        if(!isset($args[$key])) {
-            continue;
-        }
+        if(!isset($args[$key])) continue;
         $addresses = $args[$key];
-        if(is_array($addresses) && !count($addresses)) {
-            continue;
-        }
-        if(!is_array($addresses) && !strlen($addresses)) {
-            continue;
-        }
-        if('from'===$key && is_array($addresses)) {
-            return false;
-        }
-        if('reply'===$key && is_array($addresses)) {
-            return false;
-        }
-        if(!is_array($addresses)) {
-            $addresses = array($addresses);
-        }
+        if(is_array($addresses) && !count($addresses)) continue;
+        if(!is_array($addresses) && !strlen($addresses)) continue;
+        if('from'===$key && is_array($addresses)) return false;
+        if('reply'===$key && is_array($addresses)) return false;
+        if(!is_array($addresses)) $addresses = array($addresses);
         $values = array();
         foreach($addresses as $address) {
             $set = $func_mail_split($address);
             if(is_array($set)) {
-                if(!$func_is_mail($set[1])) {
-                    return false;
-                }
+                if(!$func_is_mail($set[1])) return false;
                 $encoded = mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding).' <'.$set[1].'>';
                 $values[] = $encoded;
             } else {
-                if(!$func_is_mail($address)) {
-                    return false;
-                }
+                if(!$func_is_mail($address)) return false;
                 $values[] = $address;
             }
         }
@@ -82,7 +67,6 @@ function jp_send_mail($args)
             $label = 'reply'===$key ? 'Reply-To' : ucfirst($key);
             $headers[] = $label.': '.implode(', ', $values);
         }
-
     }
 
     // subject処理
@@ -93,13 +77,9 @@ function jp_send_mail($args)
 
     // -f 処理
     if(false!==@$args['f']) {
-        if(!strlen(@$args['f'])) {
-            $args['f'] = $args['from'];
-        }
+        if(!strlen(@$args['f'])) $args['f'] = $args['from'];
         $set = $func_mail_split($args['f']);
-        if(is_array($set)) {
-            $args['f'] = $set[1];
-        }
+        if(is_array($set)) $args['f'] = $set[1];
         $parameters[] = '-f '.$args['f'];
     }
 
@@ -138,16 +118,18 @@ function jp_send_mail($args)
             $filename = mb_convert_encoding($filename, $encoding, $original_encoding);
             $filename = '=?ISO-2022-JP?B?' . base64_encode($filename) . '?=';
             $filepath = $value;
-            // var_dump(array($filename, $filepath));
-            $args['body'] .= "--{$boundary}\n";
-            $args['body'] .= "Content-Type: application/octet-stream; name=\"{$filename}\"\n";
-            $args['body'] .= "Content-Transfer-Encoding: base64\n" ;
-            $args['body'] .= "Content-Disposition: attachment; filename=\"{$filename}\"\n\n";
-            $args['body'] .= chunk_split(base64_encode(file_get_contents($filepath))) . "\n\n";
+            $args['body'] .=
+                "--{$boundary}\n".
+                "Content-Type: application/octet-stream; name=\"{$filename}\"\n".
+                "Content-Transfer-Encoding: base64\n".
+                "Content-Disposition: attachment; filename=\"{$filename}\"\n\n".
+                chunk_split(base64_encode(file_get_contents($filepath))) . "\n\n"
+            ;
         }
         $args['body'] .= "--{$boundary}--\n";
 
     } else {
+
         // Content-Type追加（添付なしメール）
         if('ISO-2022-JP-MS'===$encoding) { # ISO-2022-JP-MS のときは ISO-2022-JP として。
             $headers[] = 'Content-Type: text/plain; charset=ISO-2022-JP';
@@ -155,7 +137,7 @@ function jp_send_mail($args)
             $headers[] = 'Content-Type: text/plain; charset='.$encoding;
         }
 
-        // 頭に改行（見やすくするためだけ）
+        // 本文の頭に改行１つ追加（見やすくするためだけ）
         $args['body'] = "\n" . $args['body'];
     }
 
