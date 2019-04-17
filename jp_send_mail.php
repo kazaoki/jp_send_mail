@@ -2,16 +2,17 @@
 /**
  * 文字コード「ISO-2022-JP-MS」を使ったメール送信関数
  *
- * $args['to']       ... To
- * $args['from']     ... From
+ * $args['to']       ... To※
+ * $args['from']     ... From※
  * $args['subject']  ... Subject
  * $args['body']     ... 本文
- * $args['cc']       ... CC
- * $args['bcc']      ... BCC
+ * $args['cc']       ... CC※
+ * $args['bcc']      ... BCC※
  * $args['reply']    ... Reply-To
  * $args['f']        ... -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
  * $args['encoding'] ... エンコード。未指定なら ISO-2022-JP-MS
  * $args['headers']  ... 追加ヘッダー配列を指定します。自動的に設定されたものを上書きしてしまいますので注意。
+ * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
 function jp_send_mail($args)
 {
@@ -30,37 +31,57 @@ function jp_send_mail($args)
     // エンコーディングの設定
     $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
 
-    // オリジナルの言語環境を保管して変更
+    // オリジナルの言語環境を保管
     $original_encoding = mb_internal_encoding();
-    // $original_language = mb_language();
-    // mb_language('Japanese');
-    // mb_internal_encoding($encoding);
 
     // 変数定義
     $headers = array();
     $parameters = array();
 
-    // to処理
-    $set = $func_mail_split($args['to']);
-    if(is_array($set)) {
-        if(!$func_is_mail($set[1])) return false;
-        $args['to'] = mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding).' <'.$set[1].'>';
-    } else {
-        if(!$func_is_mail($args['to'])) return false;
-    }
-
-    // from,cc,bcc,reply処理
-    foreach(array('from', 'cc', 'bcc', 'reply') as $key) {
-        if(!strlen(@$args[$key])) continue;
-        $set = $func_mail_split($args[$key]);
-        $label = 'reply'===$key ? 'Reply-To' : ucfirst($key);
-        if(is_array($set)) {
-            if(!$func_is_mail($set[1])) return false;
-            $headers[] = $label.': '.mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding).' <'.$set[1].'>';
-        } else {
-            if(!$func_is_mail($args[$key])) return false;
-            $headers[] = $label.': '.$args[$key];
+    // メールアドレス処理
+    foreach(array('to', 'from', 'cc', 'bcc', 'reply') as $key) {
+        if(!isset($args[$key])) {
+            continue;
         }
+        $addresses = $args[$key];
+        if(is_array($addresses) && !count($addresses)) {
+            continue;
+        }
+        if(!is_array($addresses) && !strlen($addresses)) {
+            continue;
+        }
+        if('from'===$key && is_array($addresses)) {
+            return false;
+        }
+        if('reply'===$key && is_array($addresses)) {
+            return false;
+        }
+        if(!is_array($addresses)) {
+            $addresses = array($addresses);
+        }
+        $values = array();
+        foreach($addresses as $address) {
+            $set = $func_mail_split($address);
+            if(is_array($set)) {
+                if(!$func_is_mail($set[1])) {
+                    return false;
+                }
+                $encoded = mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding).' <'.$set[1].'>';
+                $values[] = $encoded;
+            } else {
+                if(!$func_is_mail($address)) {
+                    return false;
+                }
+                $values[] = $address;
+            }
+        }
+        if('to'===$key) {
+            $args['to'] = implode(', ', $values);
+        } else {
+            $label = 'reply'===$key ? 'Reply-To' : ucfirst($key);
+            $headers[] = $label.': '.implode(', ', $values);
+        }
+
     }
 
     // subject処理
@@ -71,9 +92,13 @@ function jp_send_mail($args)
 
     // -f 処理
     if(false!==@$args['f']) {
-        if(!strlen(@$args['f'])) $args['f'] = $args['from'];
+        if(!strlen(@$args['f'])) {
+            $args['f'] = $args['from'];
+        }
         $set = $func_mail_split($args['f']);
-        if(is_array($set)) $args['f'] = $set[1];
+        if(is_array($set)) {
+            $args['f'] = $set[1];
+        }
         $parameters[] = '-f '.$args['f'];
     }
 
@@ -99,10 +124,6 @@ function jp_send_mail($args)
         implode("\r\n", $headers),
         implode(' ', $parameters)
     );
-
-    // // オリジナルの言語環境に戻す
-    // mb_internal_encoding($original_encoding);
-    // mb_language($original_language);
 
     return $result;
 }

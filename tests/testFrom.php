@@ -13,12 +13,12 @@ require_once __DIR__.'/../vendor/autoload.php';
 require_once __DIR__.'/../jp_send_mail.php';
 require_once __DIR__.'/helper.php';
 
-class ToTest extends TestCase
+class FromTest extends TestCase
 {
     /**
-     * toにラベルなしのメールアドレスをセットした場合のテスト
+     * Fromにラベルなしのメールアドレスをセットした場合のテスト
      */
-    public function testToNormal()
+    public function testFromNormal()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -44,15 +44,15 @@ class ToTest extends TestCase
     }
 
     /**
-     * toにラベルありのメールアドレスをセットした場合のテスト（ASCIIラベル）
+     * fromにラベルありのメールアドレスをセットした場合のテスト（ASCIIラベル）
      */
-    public function testToWithLabel()
+    public function testFromWithLabel()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'test man <to@kazaoki.jp>',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@kazaoki.jp',
+            'from'    => 'test man <from@kazaoki.jp>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -65,22 +65,22 @@ class ToTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'test man <to@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
+        $this->assertEquals($mailed->headers['from'], 'test man <from@kazaoki.jp>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
 
     /**
-     * toにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）
+     * fromにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）
      */
-    public function testToWithLabelByMultibyte()
+    public function testFromWithLabelByMultibyte()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'テストマン <to@kazaoki.jp>',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@kazaoki.jp',
+            'from'    => 'テストマン <from@kazaoki.jp>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -93,22 +93,22 @@ class ToTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'テストマン <to@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
+        $this->assertEquals($mailed->headers['from'], 'テストマン <from@kazaoki.jp>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
 
     /**
-     * toにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）（丸数字などのMS文字）
+     * fromにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）（丸数字などのMS文字）
      */
-    public function testToWithLabelByMultibytePlusMS()
+    public function testFromWithLabelByMultibytePlusMS()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => '㈱テストマン① <to@kazaoki.jp>',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@kazaoki.jp',
+            'from'    => '㈱テストマン① <from@kazaoki.jp>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -121,37 +121,26 @@ class ToTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], '㈱テストマン① <to@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
+        $this->assertEquals($mailed->headers['from'], '㈱テストマン① <from@kazaoki.jp>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
 
     /**
-     * toにカンマ区切りで複数指定
+     * fromに複数アドレスを指定したらエラーになること
      */
-    public function testToAnyWithComma()
+    public function testFromAnyWithComma()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => array('㈱テストマン① <to@kazaoki.jp>', '★ <to2@kazaoki.jp>'),
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@kazaoki.jp',
+            'from'    => array('㈱テストマン① <from@kazaoki.jp>', 'from2@kazaoki.jp'),
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
         ));
-        $this->assertNotFalse($result);
-
-        // 配信されるまでちょっと待つ。
-        msleep(300);
-
-        // 実際に配信されたメールの中身チェック
-        $mailed = mail_get_contents($maildev_key);
-        $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], '㈱テストマン① <to@kazaoki.jp>, ★ <to2@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
-        $this->assertContains('BODY SAMPLE', $mailed->body);
+        $this->assertFalse($result);
     }
 }

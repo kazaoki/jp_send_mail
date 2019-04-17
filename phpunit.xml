@@ -10,6 +10,7 @@
     <testsuites>
         <testsuite name="SlimSkeleton">
             <file>tests/testTo.php</file>
+            <file>tests/testFrom.php</file>
         </testsuite>
     </testsuites>
     <filter>
