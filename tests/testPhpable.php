@@ -16,7 +16,7 @@ require_once __DIR__.'/helper.php';
 class phpableTest extends TestCase
 {
     /**
-     * phpableテスト
+     * phpableテスト（ちゃんとPHP実行できるか）
      */
     public function testPhpable()
     {
@@ -52,5 +52,29 @@ class phpableTest extends TestCase
         $this->assertContains('㈱サンプル本文①', $mailed->body);
         $this->assertContains('12*34=408', $mailed->body);
         $this->assertNotContains('php', $mailed->body);
+    }
+
+    /**
+     * phpableテスト（phpable無効の場合PHP実行しないよう）
+     */
+    public function testPhpableNoRun()
+    {
+        // メール送信
+        $maildev_key = md5(uniqid(rand(),1));
+        $result = jp_send_mail(array(
+            'to'      => 'to@<?php echo "kazaoki.jp" ?>',
+            'from'    => 'from@<?php echo "kazaoki.jp" ?>',
+            'cc'      => array(
+                'cc@<?php echo "kazaoki.jp" ?>',
+                'cc2@<?php echo "kazaoki.jp" ?>',
+            ),
+            'bcc'     => 'bcc@<?php echo "kazaoki.jp" ?>',
+            'reply'   => 'reply@<?php echo "kazaoki.jp" ?>',
+            'subject' => 'SUBJECT <?php echo "SAMPLE" ?>',
+            'body'    => "㈱サンプル本文①\n12*34=<?php echo 12*34 ?>",
+            'phpable' => false,
+            'headers' => array('X-MailDev-Key'=>$maildev_key),
+        ));
+        $this->assertFalse($result);
     }
 }
