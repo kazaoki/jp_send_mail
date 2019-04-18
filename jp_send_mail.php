@@ -162,7 +162,7 @@ function jp_send_mail($args)
         $args['body'] = "\n" . $args['body'];
     }
 
-    // メール配信実行
+    // メール送信実行
     $result = mail(
         $args['to'],
         $args['subject'],
