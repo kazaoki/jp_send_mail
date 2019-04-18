@@ -17,10 +17,10 @@
             <file>tests/testSubject.php</file>
             <file>tests/testBody.php</file>
             <file>tests/testHeaders.php</file>
-            <file>tests/testEtc.php</file>
             <file>tests/testUtf8.php</file>
             <file>tests/testFiles.php</file>
             <file>tests/testPhpable.php</file>
+            <file>tests/testEtc.php</file>
         </testsuite>
     </testsuites>
     <filter>

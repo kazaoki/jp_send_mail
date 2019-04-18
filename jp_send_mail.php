@@ -14,7 +14,7 @@
  *     'encoding' => '', // エンコード。未指定なら ISO-2022-JP-MS
  *     'headers'  => [], // 追加ヘッダー配列を指定可能。
  *     'files'    => [], // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
- *     'phpable'  => false, // trueだとメールアドレス・件名・本文がPHPとして実行されます。
+ *     'phpable'  => false, // false以外だとメールアドレス・件名・本文がPHPとして実行されます。キー=>値の配列指定することで変数が使えるようになります。
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
@@ -32,7 +32,8 @@ function jp_send_mail($args)
     };
 
     // 文字列をPHPとして実行する関数定義（配列のまま突っ込んでも再帰します）
-    $func_phpable = function($data) use(&$func_phpable) {
+    $func_phpable = function($data) use(&$func_phpable, $args) {
+        if(@$args['phpable'] && is_array($args['phpable'])) extract($args['phpable']);
         if(is_array($data)) {
             $new_data = array();
             foreach($data as $item) {
