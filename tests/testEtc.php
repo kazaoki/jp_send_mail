@@ -106,4 +106,45 @@ class etcTest extends TestCase
         ));
         $this->assertFalse($result);
     }
+
+    /**
+     * カンタローブログに掲載してるサンプル
+     */
+    public function testBlogSample()
+    {
+        // メール送信
+        $maildev_key = md5(uniqid(rand(),1));
+
+        $result = jp_send_mail(array(
+            'to'      => '㈱あてさき様 <to@mail.com>',
+            'from'    => 'おくりもと <from@mail.com>',
+            'subject' => 'お問い合わせありがとうございました。',
+            // 'body'    => file_get_contents('mail-thanks.php'),
+            // 'files'   => ['スケジュール①.pdf'=>'/xxx/schedule.pdf'],
+            'body'    => file_get_contents(__DIR__.'/blog-sample/mail-thanks.php'),
+            'files'   => array('スケジュール①.pdf'=>__DIR__.'/blog-sample/sample-001.pdf'),
+            'headers' => array('X-MailDev-Key'=>$maildev_key),
+        ));
+        $this->assertNotFalse($result);
+
+        // 配信されるまでちょっと待つ。
+        msleep(300);
+
+        // 実際に配信されたメールの中身チェック
+        $mailed = mail_get_contents($maildev_key);
+        $this->assertNotFalse($mailed);
+        $this->assertEquals($mailed->headers['to'], '㈱あてさき様 <to@mail.com>');
+        $this->assertEquals($mailed->headers['from'], 'おくりもと <from@mail.com>');
+        $this->assertEquals($mailed->headers['subject'], 'お問い合わせありがとうございました。');
+
+        // 本文パート
+        $this->assertContains('サンクス！⑳', $mailed->parts[0]->body);
+
+        // 添付１パート
+        $file1 = $mailed->parts[1];
+        $this->assertEquals($file1->ctype_primary, 'application');
+        $this->assertEquals($file1->ctype_secondary, 'octet-stream');
+        $this->assertEquals(mb_convert_encoding($file1->ctype_parameters['name'], 'utf-8', 'ISO-2022-JP-MS'), 'スケジュール①.pdf');
+        $this->assertEquals(strlen($file1->body), 34034);
+    }
 }
