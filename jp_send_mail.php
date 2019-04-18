@@ -25,13 +25,13 @@ function jp_send_mail($args)
         return preg_match('/^\s*(.*?)\s*<([^<>]+)>\s*$/', $mail, $matches) ? array($matches[1], $matches[2]) : $mail;
     };
 
-    // メールアドレスのDNSチェック
+    // メールアドレスのDNSをチェックする関数定義
     $func_is_mail = function($mail) {
         $host = str_replace(array('[', ']'), '', substr($mail, strpos($mail, '@') + 1));
         return (checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'));
     };
 
-    // 文字列をPHPとして実行する（配列のまま突っ込んでも再帰します）
+    // 文字列をPHPとして実行する関数定義（配列のまま突っ込んでも再帰します）
     $func_phpable = function($data) use(&$func_phpable) {
         if(is_array($data)) {
             $new_data = array();
@@ -104,14 +104,14 @@ function jp_send_mail($args)
         $parameters[] = '-f '.$args['f'];
     }
 
-    // 追加ヘッダー
+    // 追加ヘッダー処理
     if(@$args['headers'] && is_array($args['headers'])) {
         foreach($args['headers'] as $key=>$value) {
             $headers[] = $key . ': ' . $value;
         }
     }
 
-    // 添付ファイル
+    // 添付ファイル処理
     if(@$args['files'] && is_array($args['files']) && count($args['files'])) {
 
         // ヘッダー追加
@@ -151,7 +151,7 @@ function jp_send_mail($args)
 
     } else {
 
-        // Content-Type追加（添付なしメール）
+        // 添付なければ普通に Content-Type 追加（添付なしメール）
         if('ISO-2022-JP-MS'===$encoding) { # ISO-2022-JP-MS のときは ISO-2022-JP として。
             $headers[] = 'Content-Type: text/plain; charset=ISO-2022-JP';
         } else {
