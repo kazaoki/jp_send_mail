@@ -20,6 +20,7 @@
             <file>tests/testEtc.php</file>
             <file>tests/testUtf8.php</file>
             <file>tests/testFiles.php</file>
+            <file>tests/testPhpable.php</file>
         </testsuite>
     </testsuites>
     <filter>

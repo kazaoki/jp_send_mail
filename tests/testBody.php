@@ -18,7 +18,7 @@ class bodyTest extends TestCase
     /**
      * bodyテスト：ASCII
      */
-    public function testSubjectAscii()
+    public function testBodyAscii()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -46,7 +46,7 @@ class bodyTest extends TestCase
     /**
      * bodyテスト：日本語
      */
-    public function testSubjectJp()
+    public function testBodyJp()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -74,7 +74,7 @@ class bodyTest extends TestCase
     /**
      * bodyテスト：日本語MS
      */
-    public function testSubjectJpMs()
+    public function testBodyJpMs()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));

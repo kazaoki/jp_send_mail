@@ -12,8 +12,9 @@
  *     'reply'    => '', // Reply-To
  *     'f'        => '', // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
  *     'encoding' => '', // エンコード。未指定なら ISO-2022-JP-MS
- *     'headers'  => '', // 追加ヘッダー配列を指定します。
- *     'files'    => '', // 配列で添付ファイルを指定してください。key=>value指定でファイル名指定可能です。
+ *     'headers'  => [], // 追加ヘッダー配列を指定可能。
+ *     'files'    => [], // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
+ *     'phpable'  => false, // trueだとメールアドレス・件名・本文がPHPとして実行されます。
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
@@ -30,6 +31,23 @@ function jp_send_mail($args)
         return (checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'));
     };
 
+    // 文字列をPHPとして実行する（配列のまま突っ込んでも再帰します）
+    $func_phpable = function($data) use(&$func_phpable) {
+        if(is_array($data)) {
+            $new_data = array();
+            foreach($data as $item) {
+                $new_data[] = $func_phpable($item);
+            }
+            return $new_data;
+        } else {
+            ob_start();
+            eval ('?>'.$data);
+            $data = ob_get_contents();
+            ob_end_clean();
+            return $data;
+        }
+    };
+
     // エンコーディングの設定
     $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
 
@@ -43,6 +61,7 @@ function jp_send_mail($args)
     // メールアドレス処理
     foreach(array('to', 'from', 'cc', 'bcc', 'reply') as $key) {
         if(!isset($args[$key])) continue;
+        if(@$args['phpable']) $args[$key] = $func_phpable($args[$key]);
         $addresses = $args[$key];
         if(is_array($addresses) && !count($addresses)) continue;
         if(!is_array($addresses) && !strlen($addresses)) continue;
@@ -70,9 +89,11 @@ function jp_send_mail($args)
     }
 
     // subject処理
+    if(@$args['phpable']) $args['subject'] = $func_phpable($args['subject']);
     $args['subject'] = mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding);
 
     // body処理
+    if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $args['body'] = mb_convert_encoding($args['body'], $encoding, $original_encoding);
 
     // -f 処理
