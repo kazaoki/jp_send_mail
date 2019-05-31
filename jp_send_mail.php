@@ -48,8 +48,12 @@ function jp_send_mail($args)
             return $data;
         }
     };
+    // BASE64文字列の畳み込み解除する関数定義（EdMaxだと畳み込み途中で文字化けるため）
+    $func_unfold_base64 = function($base64_str) {
+        return preg_replace("/\?\=\s+\=\?ISO-2022-JP\?B\?/", '', $base64_str);
+    };
 
-    // エンコーディングの設定
+// エンコーディングの設定
     $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
 
     // オリジナルの言語環境を保管
@@ -74,7 +78,7 @@ function jp_send_mail($args)
             $set = $func_mail_split($address);
             if(is_array($set)) {
                 if(!$func_is_mail($set[1])) return false;
-                $encoded = mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding).' <'.$set[1].'>';
+                $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
                 $values[] = $encoded;
             } else {
                 if(!$func_is_mail($address)) return false;
@@ -91,9 +95,9 @@ function jp_send_mail($args)
 
     // subject処理
     if(@$args['phpable']) $args['subject'] = $func_phpable($args['subject']);
-    $args['subject'] = mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding);
+	$args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
 
-    // body処理
+	// body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $args['body'] = mb_convert_encoding($args['body'], $encoding, $original_encoding);
 
