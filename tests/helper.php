@@ -1,5 +1,8 @@
 <?php
 
+set_include_path('/usr/share/pear/');
+require_once __DIR__.'/Mail_mimeDecode-1.5.6/Mail/mimeDecode.php';
+
 /**
  * ヘッダーに付けた判別キーをもとに maildev の emlファイルを探し出し中身を返す
  * @return string

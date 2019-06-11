@@ -57,13 +57,21 @@ config.lang =
 	// PHP設定
 	php: {
 		// ↓バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		// phpenv_image: 'kazaoki/phpenv:7.3.5',
+		// phpenv_image: 'kazaoki/phpenv:7.2.17',
+		// phpenv_image: 'kazaoki/phpenv:7.1.23',
+		// phpenv_image: 'kazaoki/phpenv:7.0.30',
+		// phpenv_image: 'kazaoki/phpenv:5.6.40',
+		// phpenv_image: 'kazaoki/phpenv:5.6.34',
+		// phpenv_image: 'kazaoki/phpenv:5.6.22',
+		// phpenv_image: 'kazaoki/phpenv:5.4.16',
 		phpenv_image: 'kazaoki/phpenv:5.3.3',
 		error_report: process.env['GENIE_RUNMODE']==='develop',
 		timezone: 'Asia/Tokyo',
 		xdebug: {
 			host: '192.168.0.10',
 			port: 9000,
- 		}
+		}
 	},
 }
 
@@ -269,8 +277,8 @@ config.command =
 	phplist: '. ~/.bashrc && phpenv install --list',
 	xoff: '/opt/misc/php-xdebug-off.sh',
 	xon: '/opt/misc/php-xdebug-on.sh',
-	composer: 'cd /var/www/html/slim/ && /root/.anyenv/envs/phpenv/shims/composer install',
-	autoload: 'cd /var/www/html/slim/ && /root/.anyenv/envs/phpenv/shims/composer dump-autoload',
+	composer: 'cd /var/www/html/ && /root/.anyenv/envs/phpenv/shims/composer install',
+	autoload: 'cd /var/www/html/ && /root/.anyenv/envs/phpenv/shims/composer dump-autoload',
 	phpunit: '/root/.anyenv/envs/phpenv/shims/php /jp_send_mail/vendor/bin/phpunit -c /jp_send_mail/phpunit.xml',
 	phpunitcv: '/root/.anyenv/envs/phpenv/shims/php /jp_send_mail/vendor/bin/phpunit -c /jp_send_mail/phpunit.xml --coverage-html /jp_send_mail/tests/coverage-html',
 }
