@@ -15,6 +15,7 @@
  *     'headers'  => [], // 追加ヘッダー配列を指定可能。
  *     'files'    => [], // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
  *     'phpable'  => false, // false以外だとメールアドレス・件名・本文がPHPとして実行されます。キー=>値の配列指定することで変数が使えるようになります。
+ *     'startline'=> 1, // 本文上部の改行が数を指定します。標準では1です。
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
@@ -163,8 +164,11 @@ function jp_send_mail($args)
             $headers[] = 'Content-Type: text/plain; charset='.$encoding;
         }
 
-        // 本文の頭に改行１つ追加（見やすくするためだけ）
-        $args['body'] = "\n" . $args['body'];
+        // 本文の頭に改行追加（標準:1）
+        $args['body'] =
+            str_repeat("\n", strlen(@$args['startline']) ? $args['startline'] : 1) .
+            $args['body']
+        ;
     }
 
     // メール送信実行

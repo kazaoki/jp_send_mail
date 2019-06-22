@@ -21,6 +21,7 @@
             <file>tests/testFiles.php</file>
             <file>tests/testPhpable.php</file>
             <file>tests/testEtc.php</file>
+            <file>tests/testStartline.php</file>
         </testsuite>
     </testsuites>
     <filter>
