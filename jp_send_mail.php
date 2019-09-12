@@ -54,11 +54,14 @@ function jp_send_mail($args)
         return preg_replace("/\?\=\s+\=\?ISO-2022-JP\?B\?/", '', $base64_str);
     };
 
-// エンコーディングの設定
+    // エンコーディングの設定
     $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
 
-    // オリジナルの言語環境を保管
-    $original_encoding = mb_internal_encoding();
+    // オリジナルの言語環境を保管（ISO-8859-1の場合はUTF-8に強制変換）
+    $original_encoding = 'ISO-8859-1'===mb_internal_encoding()
+        ? 'utf-8'
+        : mb_internal_encoding()
+    ;
 
     // 変数定義
     $headers = array();
