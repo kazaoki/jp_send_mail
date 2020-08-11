@@ -10,7 +10,7 @@ require_once __DIR__.'/Mail_mimeDecode-1.5.6/Mail/mimeDecode.php';
 function mail_get_contents($maildev_key, $encoding='ISO-2022-JP-MS')
 {
     // maildevのpidを取得（emailファイルが格納されるディレクトリ名になる）
-    $eml_dir = '/tmp/maildev/'.exec('pidof node');
+    $eml_dir = '/tmp/maildev/'.trim(exec('ps --no-heading -C node -o pid'));
 
     // 該当のemlファイルを探して中身をパースして返す
     foreach(glob($eml_dir.'/*.eml') as $file){
