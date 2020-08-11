@@ -18,6 +18,10 @@
  *     'startline'=> 1, // 本文上部の改行が数を指定します。標準では1です。
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
+ *
+ * ---
+ * 2020.08.11 : func_mb_wordwrap()を追加して70文字ごとに自動改行するようにした。（1行に1kbyteあると全角文字が化けるため）
+ *
  */
 function jp_send_mail($args)
 {
@@ -30,6 +34,26 @@ function jp_send_mail($args)
     $func_is_mail = function($mail) {
         $host = str_replace(array('[', ']'), '', substr($mail, strpos($mail, '@') + 1));
         return (checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'));
+    };
+
+    // マルチバイト版 wordwrap()
+    $func_mb_wordwrap = function($str, $width, $break="\r\n", $encoding=null) {
+        if(!$encoding) $encoding = mb_internal_encoding();
+        $result = [];
+        $count = 0;
+        foreach(mb_split("\r\n|\r|\n", $str) as $line) {
+            $pos = 0;
+            $strwidth = mb_strlen($line);
+            if(!$strwidth) {
+                $result[] = '';
+                continue;
+            }
+            while($pos < $strwidth) {
+                $result[] = mb_strimwidth($line, $pos, $width, '', $encoding);
+                $pos += mb_strlen($result[@count($result)-1]);
+            }
+        }
+        return implode($break, $result);
     };
 
     // 文字列をPHPとして実行する関数定義（配列のまま突っ込んでも再帰します）
@@ -99,11 +123,15 @@ function jp_send_mail($args)
 
     // subject処理
     if(@$args['phpable']) $args['subject'] = $func_phpable($args['subject']);
-	$args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
+    $args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
 
-	// body処理
+    // body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
-    $args['body'] = mb_convert_encoding($args['body'], $encoding, $original_encoding);
+    $args['body'] = mb_convert_encoding(
+        $func_mb_wordwrap($args['body'], 70, "\r\n", $original_encoding),
+        $encoding,
+        $original_encoding
+    );
 
     // -f 処理
     if(false!==@$args['f']) {
