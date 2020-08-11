@@ -39,7 +39,7 @@ function jp_send_mail($args)
     // マルチバイト版 wordwrap()
     $func_mb_wordwrap = function($str, $width, $break="\r\n", $encoding=null) {
         if(!$encoding) $encoding = mb_internal_encoding();
-        $result = [];
+        $result = array();
         $count = 0;
         foreach(mb_split("\r\n|\r|\n", $str) as $line) {
             $pos = 0;
