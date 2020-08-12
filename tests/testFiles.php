@@ -37,7 +37,7 @@ class filesTest extends TestCase
         $this->assertNotFalse($result);
 
         // 配信されるまでちょっと待つ。
-        msleep(300);
+        msleep(1000);
 
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key, 'utf-8');
@@ -94,7 +94,7 @@ class filesTest extends TestCase
         $this->assertNotFalse($result);
 
         // 配信されるまでちょっと待つ。
-        msleep(300);
+        msleep(1000);
 
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key, 'utf-8');

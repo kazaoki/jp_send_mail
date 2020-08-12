@@ -31,11 +31,12 @@ function mail_get_contents($maildev_key, $encoding='ISO-2022-JP-MS')
                 }
                 if(strtolower(mb_internal_encoding())!==strtolower($encoding)) {
                     if(@$structure->parts) {
-                        $structure->parts[0]->body = mb_convert_encoding(mb_decode_mimeheader($structure->parts[0]->body), mb_internal_encoding(), $encoding);
+                        $structure->parts[0]->body = mb_convert_encoding($structure->parts[0]->body, mb_internal_encoding(), $encoding);
                     } else {
-                        $structure->body = mb_convert_encoding(mb_decode_mimeheader($structure->body), mb_internal_encoding(), $encoding);
+                        $structure->body = mb_convert_encoding($structure->body, mb_internal_encoding(), $encoding);
                     }
                 }
+                $structure->tmpname = $file;
                 return $structure;
             }
         }

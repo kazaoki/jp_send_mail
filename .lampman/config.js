@@ -39,6 +39,7 @@ module.exports.config = {
             ],
             mounts: [ // 公開ディレクトリに /var/www/html を割り当ててください。
                 '..:/jp_send_mail',
+                // '../tests/tmp/maildev:/tmp/maildev',
                 // '../public_html:/var/www/html',
                 // '../public_html:/home/user_a/public_html',
             ],
