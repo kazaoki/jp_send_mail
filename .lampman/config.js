@@ -154,11 +154,6 @@ module.exports.config = {
         },
 
         // PHPUnit テスト
-        _test: {
-            command: 'ls -la /',
-            container: 'lampman',
-            desc: 'PHP Unit実行'
-        },
         phpunit: {
             command: '/root/.anyenv/envs/phpenv/shims/php /jp_send_mail/vendor/bin/phpunit -c /jp_send_mail/phpunit.xml --coverage-html /jp_send_mail/tests/coverage-html',
             container: 'lampman',

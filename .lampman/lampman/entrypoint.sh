@@ -24,6 +24,10 @@ if [[ $LAMPMAN_PHP_PHPENV_IMAGE != '' ]]; then
   if expr $LAMPMAN_PHP_PHPENV_VERSION : "^7" > /dev/null; then
     sed -i "s/LoadModule\ php5_module\ modules\/libphp5.so/LoadModule\ php7_module\ modules\/libphp7.so/" /etc/httpd/conf.modules.d/10-php.conf
   fi
+  # -- php8 config
+  if expr $LAMPMAN_PHP_PHPENV_VERSION : "^8" > /dev/null; then
+    sed -i "s/LoadModule\ php5_module\ modules\/libphp5.so/LoadModule\ php_module\ modules\/libphp.so/" /etc/httpd/conf.modules.d/10-php.conf
+  fi
   eval "$(anyenv init -)"
 fi
 if [[ $LAMPMAN_PHP_ERROR_REPORT == 1 ]]; then
@@ -31,20 +35,42 @@ if [[ $LAMPMAN_PHP_ERROR_REPORT == 1 ]]; then
 fi
 echo "[Date]" >> $phpini
 echo "date.timezone = \"Asia/Tokyo\"" >> $phpini
-sed -i "/xdebug\.remote_enable/d" $phpini
-sed -i "/xdebug\.remote_autostart/d" $phpini
-sed -i "/xdebug\.remote_host/d" $phpini
-sed -i "/xdebug\.remote_port/d" $phpini
-if [[ $LAMPMAN_PHP_XDEBUG_START == '1' ]]; then
-  echo 'xdebug.remote_enable = On' >> $phpini
-  echo 'xdebug.remote_autostart = On' >> $phpini
-  echo "xdebug.remote_host=$LAMPMAN_PHP_XDEBUG_HOST" >> $phpini
-  if [[ $LAMPMAN_PHP_XDEBUG_PORT != '' ]]; then
-    echo "xdebug.remote_port=$LAMPMAN_PHP_XDEBUG_PORT" >> $phpini
+xdebug_version=$(/root/.anyenv/envs/phpenv/shims/php --ri xdebug | grep -i version)
+# for XDebug 2.x
+if [[ $xdebug_version =~ \ 2\. ]]; then
+  sed -i "/xdebug\.remote_enable/d" $phpini
+  sed -i "/xdebug\.remote_autostart/d" $phpini
+  sed -i "/xdebug\.remote_host/d" $phpini
+  sed -i "/xdebug\.remote_port/d" $phpini
+  if [[ $LAMPMAN_PHP_XDEBUG_START == '1' ]]; then
+    echo 'xdebug.remote_enable = On' >> $phpini
+    echo 'xdebug.remote_autostart = On' >> $phpini
+    echo "xdebug.remote_host=$LAMPMAN_PHP_XDEBUG_HOST" >> $phpini
+    if [[ $LAMPMAN_PHP_XDEBUG_PORT != '' ]]; then
+      echo "xdebug.remote_port=$LAMPMAN_PHP_XDEBUG_PORT" >> $phpini
+    fi
+  else
+    echo 'xdebug.remote_enable = Off' >> $phpini
+    echo 'xdebug.remote_autostart = Off' >> $phpini
   fi
-else
-  echo 'xdebug.remote_enable = Off' >> $phpini
-  echo 'xdebug.remote_autostart = Off' >> $phpini
+fi
+# for XDebug 3.x
+if [[ $xdebug_version =~ \ 3\. ]]; then
+  sed -i "/xdebug\.client_host/d" $phpini
+  sed -i "/xdebug\.client_port/d" $phpini
+  sed -i "/xdebug\.mode/d" $phpini
+  sed -i "/xdebug\.start_with_request/d" $phpini
+  if [[ $LAMPMAN_PHP_XDEBUG_START == '1' ]]; then
+    echo "xdebug.client_host=$LAMPMAN_PHP_XDEBUG_HOST" >> $phpini
+    if [[ $LAMPMAN_PHP_XDEBUG_PORT != '' ]]; then
+      echo "xdebug.client_port=$LAMPMAN_PHP_XDEBUG_PORT" >> $phpini
+    fi
+    echo "xdebug.mode = debug" >> $phpini
+    echo "xdebug.start_with_request = yes" >> $phpini
+  else
+    echo "xdebug.mode = Off" >> $phpini
+    echo "xdebug.start_with_request = default" >> $phpini
+  fi
 fi
 sed -i "s/^variables_order .*$/variables_order = \"EGPCS\"/" $phpini
 echo $phpini > /phpinipath
@@ -130,7 +156,6 @@ if [[ $LAMPMAN_MAILDEV_START == 1 ]]; then
 
   # -- Postfix config change
   echo 'relayhost = 127.0.0.1:1025' >> /etc/postfix/main.cf
-  sed -i 's/inet_protocols = all/inet_protocols = ipv4/g' /etc/postfix/main.cf
 
   # -- MailDev start
   maildev -s 1025 -w 1080 &
@@ -138,9 +163,11 @@ fi
 
 # -- Postfix start
 if [[ $LAMPMAN_POSTFIX_START == 1 ]]; then
+  sed -i 's/inet_protocols = all/inet_protocols = ipv4/g' /etc/postfix/main.cf
   /usr/sbin/postfix start
 fi
 
+touch /tmp/.container-loaded
 echo 'lampman started.'
 
 # --------------------------------------------------------------------
