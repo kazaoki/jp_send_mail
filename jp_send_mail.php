@@ -133,6 +133,12 @@ function jp_send_mail($args)
         $original_encoding
     );
 
+    // 本文の頭に改行追加（標準:1）
+    $args['body'] =
+        str_repeat("\n", strlen(@$args['startline']) ? $args['startline'] : 1) .
+        $args['body']
+    ;
+
     // -f 処理
     if(false!==@$args['f']) {
         if(!strlen(@$args['f'])) $args['f'] = $args['from'];
@@ -194,12 +200,6 @@ function jp_send_mail($args)
         } else {
             $headers[] = 'Content-Type: text/plain; charset='.$encoding;
         }
-
-        // 本文の頭に改行追加（標準:1）
-        $args['body'] =
-            str_repeat("\n", strlen(@$args['startline']) ? $args['startline'] : 1) .
-            $args['body']
-        ;
     }
 
     // メール送信実行
