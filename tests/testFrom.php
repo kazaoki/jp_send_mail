@@ -10,7 +10,6 @@ mb_internal_encoding('utf-8');
 
 // ローダー
 require_once __DIR__.'/../vendor/autoload.php';
-require_once __DIR__.'/../jp_send_mail.php';
 require_once __DIR__.'/helper.php';
 
 class FromTest extends TestCase
