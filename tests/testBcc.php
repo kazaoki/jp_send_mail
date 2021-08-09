@@ -23,9 +23,9 @@ class BccTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'bcc'     => 'bcc@kazaoki.jp',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'bcc'     => 'bcc@example.com',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -38,8 +38,8 @@ class BccTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertNull(@$mailed->headers['bcc']); // bccはセットされない
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
@@ -53,9 +53,9 @@ class BccTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'bcc'      => 'test man <bcc@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'bcc'      => 'test man <bcc@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -68,8 +68,8 @@ class BccTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertNull(@$mailed->headers['bcc']); // bccはセットされない
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
@@ -83,9 +83,9 @@ class BccTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'bcc'     => 'テストマン <bcc@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'bcc'     => 'テストマン <bcc@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -98,8 +98,8 @@ class BccTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertNull(@$mailed->headers['bcc']); // bccはセットされない
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
@@ -113,9 +113,9 @@ class BccTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'bcc'      => '㈱テストマン① <bcc@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'bcc'      => '㈱テストマン① <bcc@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -128,8 +128,8 @@ class BccTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertNull(@$mailed->headers['bcc']); // bccはセットされない
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
@@ -143,9 +143,9 @@ class BccTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'bcc'      => array('㈱テストマン① <bcc@kazaoki.jp>', '★ <bcc2@kazaoki.jp>'),
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'bcc'      => array('㈱テストマン① <bcc@example.com>', '★ <bcc2@example.com>'),
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -158,8 +158,8 @@ class BccTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertNull(@$mailed->headers['bcc']); // bccはセットされない
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);

@@ -23,9 +23,9 @@ class ReplyTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'reply'   => 'reply@kazaoki.jp',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'reply'   => 'reply@example.com',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -38,9 +38,9 @@ class ReplyTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['reply-to'], 'reply@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['reply-to'], 'reply@example.com');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -53,9 +53,9 @@ class ReplyTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'reply'   => 'test man <reply@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'reply'   => 'test man <reply@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -68,9 +68,9 @@ class ReplyTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['reply-to'], 'test man <reply@kazaoki.jp>');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['reply-to'], 'test man <reply@example.com>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -83,9 +83,9 @@ class ReplyTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'reply'   => 'テストマン <reply@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'reply'   => 'テストマン <reply@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -98,9 +98,9 @@ class ReplyTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['reply-to'], 'テストマン <reply@kazaoki.jp>');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['reply-to'], 'テストマン <reply@example.com>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -113,9 +113,9 @@ class ReplyTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'reply'   => '㈱テストマン① <reply@kazaoki.jp>',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'reply'   => '㈱テストマン① <reply@example.com>',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -128,9 +128,9 @@ class ReplyTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['reply-to'], '㈱テストマン① <reply@kazaoki.jp>');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['reply-to'], '㈱テストマン① <reply@example.com>');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -143,9 +143,9 @@ class ReplyTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
-            'reply'   => array('㈱テストマン① <reply@kazaoki.jp>', '★ <reply2@kazaoki.jp>'),
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'reply'   => array('㈱テストマン① <reply@example.com>', '★ <reply2@example.com>'),
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),

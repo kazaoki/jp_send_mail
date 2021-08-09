@@ -23,8 +23,8 @@ class headersTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-AAA'=>'123', 'X-MailDev-Key'=>$maildev_key),
@@ -37,8 +37,8 @@ class headersTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
         $this->assertEquals($mailed->headers['x-aaa'], '123'); // キーは小文字になる

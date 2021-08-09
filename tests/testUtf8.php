@@ -23,8 +23,8 @@ class utf8Test extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => '日本語 <to@kazaoki.jp>',
-            'from'    => '日本語 <from@kazaoki.jp>',
+            'to'      => '日本語 <to@example.com>',
+            'from'    => '日本語 <from@example.com>',
             'subject' => '日本語 SUBJECT SAMPLE',
             'body'    => '日本語 BODY SAMPLE',
             'encoding'=> 'utf-8',
@@ -38,8 +38,8 @@ class utf8Test extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key, 'utf-8');
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], '日本語 <to@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], '日本語 <from@kazaoki.jp>');
+        $this->assertEquals($mailed->headers['to'], '日本語 <to@example.com>');
+        $this->assertEquals($mailed->headers['from'], '日本語 <from@example.com>');
         $this->assertEquals($mailed->headers['subject'], '日本語 SUBJECT SAMPLE');
         $this->assertContains('日本語 BODY SAMPLE', $mailed->body);
     }

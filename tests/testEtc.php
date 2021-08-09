@@ -23,8 +23,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
             'cc'      => array(),
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
@@ -38,8 +38,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -52,8 +52,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jp',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
             'cc'      => '',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
@@ -67,8 +67,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
         $this->assertContains('BODY SAMPLE', $mailed->body);
     }
@@ -81,8 +81,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'to@kazaoki.jpp',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'to@example.comp',
+            'from'    => 'from@example.com',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -98,8 +98,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'to'      => 'まちがいめーる <to@kazaoki.jpp>',
-            'from'    => 'from@kazaoki.jp',
+            'to'      => 'まちがいめーる <to@example.comp>',
+            'from'    => 'from@example.com',
             'subject' => 'SUBJECT SAMPLE',
             'body'    => 'BODY SAMPLE',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -155,18 +155,18 @@ class etcTest extends TestCase
         $maildev_key = md5(uniqid(rand(),1));
 
         $result = jp_send_mail(array(
-            'from'    => 'from@kazaoki.jp',
+            'from'    => 'from@example.com',
             'to'      => array(
-                '山田太郎 <tarou@kazaoki.jp>',
-                'to@kazaoki.jp',
+                '山田太郎 <tarou@example.com>',
+                'to@example.com',
             ),
             'cc'      => array(
-                '山田花子 <hanako@kazaoki.jp>',
-                'cc@kazaoki.jp',
+                '山田花子 <hanako@example.com>',
+                'cc@example.com',
             ),
             'bcc'     => array(
-                '山田次郎 <jirou@kazaoki.jp>',
-                'bcc@kazaoki.jp',
+                '山田次郎 <jirou@example.com>',
+                'bcc@example.com',
             ),
             'subject' => '件名',
             'body'    => '本文',
@@ -180,9 +180,9 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], '山田太郎 <tarou@kazaoki.jp>, to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['cc'], '山田花子 <hanako@kazaoki.jp>, cc@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], '山田太郎 <tarou@example.com>, to@example.com');
+        $this->assertEquals($mailed->headers['cc'], '山田花子 <hanako@example.com>, cc@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], '件名');
         $this->assertContains('本文', $mailed->body);
     }
@@ -196,9 +196,9 @@ class etcTest extends TestCase
         $maildev_key = md5(uniqid(rand(),1));
 
         $result = jp_send_mail(array(
-            'from'    => 'from@kazaoki.jp',
-            'to'      => 'to@kazaoki.jp',
-            'reply'   => 'reply@kazaoki.jp',
+            'from'    => 'from@example.com',
+            'to'      => 'to@example.com',
+            'reply'   => 'reply@example.com',
             'subject' => '件名',
             'body'    => '本文',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -211,9 +211,9 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
-        $this->assertEquals($mailed->headers['reply-to'], 'reply@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['reply-to'], 'reply@example.com');
         $this->assertEquals($mailed->headers['subject'], '件名');
         $this->assertContains('本文', $mailed->body);
     }
@@ -228,8 +228,8 @@ class etcTest extends TestCase
 
         $result = jp_send_mail(array(
             'encoding' => 'UTF-8',
-            'from'     => '😃 <from@kazaoki.jp>',
-            'to'       => '🐶 <to@kazaoki.jp>',
+            'from'     => '😃 <from@example.com>',
+            'to'       => '🐶 <to@example.com>',
             'subject'  => '件😺名',
             'body'     => '本🐴文',
             'headers' => array('X-MailDev-Key'=>$maildev_key),
@@ -242,8 +242,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key, 'UTF-8');
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], '🐶 <to@kazaoki.jp>');
-        $this->assertEquals($mailed->headers['from'], '😃 <from@kazaoki.jp>');
+        $this->assertEquals($mailed->headers['to'], '🐶 <to@example.com>');
+        $this->assertEquals($mailed->headers['from'], '😃 <from@example.com>');
         $this->assertEquals($mailed->headers['subject'], '件😺名');
         $this->assertContains('本🐴文', $mailed->body);
     }
@@ -259,8 +259,8 @@ class etcTest extends TestCase
         $type = 1; // タイプが入る（1:お問い合わせ  2:資料請求）
         $name = '山田太郎'; // お名前が入る
         $result = jp_send_mail(array(
-            'from'    => 'from@kazaoki.jp',
-            'to'      => 'to@kazaoki.jp',
+            'from'    => 'from@example.com',
+            'to'      => 'to@example.com',
             'subject' => '<?php echo $type===1 ? "お問い合わせ" : "資料請求" ?>ありがとうございます。', // php5.3なのでちょい改変。
             'body'    => 'こんにちは <?php echo $name ?> 様',
             'phpable' => compact('name', 'type'), // 設定値をPHPとして実行する
@@ -274,8 +274,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], 'お問い合わせありがとうございます。');
         $this->assertContains('こんにちは 山田太郎 様', $mailed->body);
     }
@@ -288,8 +288,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'from'    => 'from@kazaoki.jp',
-            'to'      => 'to@kazaoki.jp',
+            'from'    => 'from@example.com',
+            'to'      => 'to@example.com',
             'subject' => '件名',
             'body'    => '本文',
             'headers' => array(
@@ -305,8 +305,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], '件名');
         $this->assertEquals($mailed->headers['priority'], 'urgent');
         $this->assertContains('本文', $mailed->body);
@@ -320,8 +320,8 @@ class etcTest extends TestCase
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
         $result = jp_send_mail(array(
-            'from'    => 'from@kazaoki.jp',
-            'to'      => 'to@kazaoki.jp',
+            'from'    => 'from@example.com',
+            'to'      => 'to@example.com',
             'subject' => '件名',
             'body'    => '本文',
             'files'   => array(
@@ -338,8 +338,8 @@ class etcTest extends TestCase
         // 実際に配信されたメールの中身チェック
         $mailed = mail_get_contents($maildev_key);
         $this->assertNotFalse($mailed);
-        $this->assertEquals($mailed->headers['to'], 'to@kazaoki.jp');
-        $this->assertEquals($mailed->headers['from'], 'from@kazaoki.jp');
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
         $this->assertEquals($mailed->headers['subject'], '件名');
 
         // 本文パート
