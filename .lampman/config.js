@@ -165,6 +165,23 @@ module.exports.config = {
             desc: 'PHP Unit実行（カバレッジなし）'
         },
 
+        // composer
+        composer_dump: {
+            command: 'cd /jp_send_mail && /root/.anyenv/envs/phpenv/shims/composer dump',
+            container: 'lampman',
+            // desc: ''
+        },
+        composer_install: {
+            command: 'cd /jp_send_mail && /root/.anyenv/envs/phpenv/shims/composer install',
+            container: 'lampman',
+            // desc: ''
+        },
+        composer_update: {
+            command: 'cd /jp_send_mail && /root/.anyenv/envs/phpenv/shims/composer update',
+            container: 'lampman',
+            // desc: ''
+        },
+
         // extraサンプル：`lamp sample`
         // sample: {
         //     command: '(command for all os)',

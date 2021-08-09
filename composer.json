@@ -1,4 +1,18 @@
 {
+    "name": "kazaoki/jp_send_mail",
+    "description": "Japanese mail sending function that feels just right",
+    "type": "library",
+    "license": "LGPL-3.0-or-later",
+    "homepage": "https://github.com/kazaoki/jp_send_mail",
+    "keywords": ["japanese", "mail"],
+    "authors": [
+        {
+            "name": "karino",
+            "email": "karino@kazaoki.jp"
+        }
+    ],
+    "require": {
+    },
     "require-dev": {
         "phpunit/phpunit": "^4.8"
     },
@@ -6,5 +20,8 @@
         "files": [
             "jp_send_mail.php"
         ]
+    },
+    "scripts": {
+        "test": "lamp phpunit"
     }
 }
