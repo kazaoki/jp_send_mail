@@ -124,7 +124,7 @@ function jp_send_mail($args)
     // body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $args['body'] = mb_convert_encoding(
-        $func_mb_wordwrap($args['body'], 70, "\r\n", $original_encoding),
+        $func_mb_wordwrap($args['body'], 78, "\r\n", $original_encoding),
         $encoding,
         $original_encoding
     );
