@@ -1,5 +1,6 @@
 <?php
 /**
+ * jp_send_mail() v1.2.0
  * ちょうどいい感じの日本語メール送信関数
  *
  * $result = jp_send_mail([
