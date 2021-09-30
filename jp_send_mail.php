@@ -3,19 +3,20 @@
  * ちょうどいい感じの日本語メール送信関数
  *
  * $result = jp_send_mail([
- *     'to'       => '', // To※
- *     'from'     => '', // From
- *     'subject'  => '', // Subject
- *     'body'     => '', // 本文
- *     'cc'       => '', // CC※
- *     'bcc'      => '', // BCC※
- *     'reply'    => '', // Reply-To
- *     'f'        => '', // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
- *     'encoding' => '', // エンコード。未指定なら ISO-2022-JP-MS
- *     'headers'  => [], // 追加ヘッダー配列を指定可能。
- *     'files'    => [], // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
- *     'phpable'  => false, // false以外だとメールアドレス・件名・本文がPHPとして実行されます。キー=>値の配列指定することで変数が使えるようになります。
- *     'startline'=> 1, // 本文上部の改行が数を指定します。標準では1です。
+ *     'to'            => '',    // To※
+ *     'from'          => '',    // From
+ *     'subject'       => '',    // Subject
+ *     'body'          => '',    // 本文
+ *     'cc'            => '',    // CC※
+ *     'bcc'           => '',    // BCC※
+ *     'reply'         => '',    // Reply-To
+ *     'f'             => '',    // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
+ *     'encoding'      => '',    // エンコード。未指定なら ISO-2022-JP-MS
+ *     'headers'       => [],    // 追加ヘッダー配列を指定可能。
+ *     'files'         => [],    // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
+ *     'phpable'       => false, // false以外だとメールアドレス・件名・本文がPHPとして実行されます。キー=>値の配列指定することで変数が使えるようになります。
+ *     'startline'     => 1,     // 本文上部の改行が数を指定します。標準では1です。
+ *     'force_hankana' => false, // エンコードがUTF-8以外の場合、安全のため半角カタカナを全角に変換しますが、これをtrueにすると変換処理を行いません。（非推奨）
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
@@ -74,7 +75,7 @@ function jp_send_mail($args)
         return preg_replace("/\?\=\s+\=\?ISO-2022-JP\?B\?/", '', $base64_str);
     };
 
-    // エンコーディングの設定
+    // 送信エンコーディングの設定
     $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
 
     // オリジナルの言語環境を保管（ISO-8859-1の場合はUTF-8に強制変換）
@@ -82,6 +83,16 @@ function jp_send_mail($args)
         ? 'utf-8'
         : mb_internal_encoding()
     ;
+
+    // エンコーディングがUTF-8ではない場合、半角カタカナを全角カタカナに強制変換する
+    if(!preg_match('/^utf\-?8$/i', $encoding)) {
+        if(!@$args['force_hankana']) {
+            foreach($args as $key=>$value) {
+                if(is_array($value)) continue;
+                $args[$key] = mb_convert_kana($value, 'KV', $original_encoding);
+            }
+        }
+    }
 
     // 変数定義
     $headers = array();

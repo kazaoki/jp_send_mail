@@ -22,6 +22,7 @@
             <file>tests/testPhpable.php</file>
             <file>tests/testEtc.php</file>
             <file>tests/testStartline.php</file>
+            <file>tests/testHankakuKana.php</file>
         </testsuite>
     </testsuites>
     <filter>
