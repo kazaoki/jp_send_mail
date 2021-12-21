@@ -99,7 +99,7 @@ class bodyTest extends TestCase
     }
 
     /**
-     * bodyテスト：なが～い行（70byteで自動改行テスト）
+     * bodyテスト：なが～い行（78byteで自動改行テスト）
      */
     public function testBodyLongMB()
     {
@@ -220,6 +220,121 @@ class bodyTest extends TestCase
                 "123456あいうえおあいうえお０１２３４５６７８９あいうえおあいうえおあいうえおあ\r\n".
                 "いうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\r\n".
                 "あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\r\n"
+        , $mailed->body);
+    }
+
+    /**
+     * bodyテスト：折り返し文字数を指定（30byteで自動改行テスト）
+     */
+    public function testBodyWrapMB()
+    {
+        // メール送信
+        $maildev_key = md5(uniqid(rand(),1));
+        $result = jp_send_mail(array(
+            'wrap'    => 30,
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'subject' => 'SUBJECT SAMPLE',
+            'body'    =>
+                // 5
+                "あいうえお\n".
+                // 100
+                "あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\n".
+                // 行間あけ
+                "\n\n\n".
+                "TEST\n".
+                "\n\n\n".
+                // 半角全角まじり
+                "123456あいうえおあいうえお０１２３４５６７８９あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\n"
+            ,
+            'headers' => array('X-MailDev-Key'=>$maildev_key),
+        ));
+        $this->assertNotFalse($result);
+
+        // 配信されるまでちょっと待つ。
+        msleep(300);
+
+        // 実際に配信されたメールの中身チェック
+        $mailed = mail_get_contents($maildev_key);
+        $this->assertNotFalse($mailed);
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
+        $this->assertContains(
+                // 5
+                "あいうえお\r\n".
+                // 100
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえおあいうえお\r\n".
+                "あいうえおあいうえお\r\n".
+                // 行間あけ
+                "\r\n\r\n\r\n".
+                "TEST\r\n".
+                "\r\n\r\n\r\n".
+                // 半角全角まじり
+                "123456あいうえおあいうえお０１\r\n".
+                "２３４５６７８９あいうえおあい\r\n".
+                "うえおあいうえおあいうえおあい\r\n".
+                "うえおあいうえおあいうえおあい\r\n".
+                "うえおあいうえおあいうえおあい\r\n".
+                "うえおあいうえおあいうえおあい\r\n".
+                "うえおあいうえおあいうえおあい\r\n".
+                "うえおあいうえお\r\n"
+        , $mailed->body);
+    }
+
+    /**
+     * bodyテスト：折り返し無し指定
+     */
+    public function testBodyNoWrapMB()
+    {
+        // メール送信
+        $maildev_key = md5(uniqid(rand(),1));
+        $result = jp_send_mail(array(
+            'wrap'    => false,
+            'to'      => 'to@example.com',
+            'from'    => 'from@example.com',
+            'subject' => 'SUBJECT SAMPLE',
+            'body'    =>
+                // 5
+                "あいうえお\n".
+                // 100
+                "あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\n".
+                // 行間あけ
+                "\n\n\n".
+                "TEST\n".
+                "\n\n\n".
+                // 半角全角まじり
+                "123456あいうえおあいうえお０１２３４５６７８９あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\n"
+            ,
+            'headers' => array('X-MailDev-Key'=>$maildev_key),
+        ));
+        $this->assertNotFalse($result);
+
+        // 配信されるまでちょっと待つ。
+        msleep(300);
+
+        // 実際に配信されたメールの中身チェック
+        $mailed = mail_get_contents($maildev_key);
+        $this->assertNotFalse($mailed);
+        $this->assertEquals($mailed->headers['to'], 'to@example.com');
+        $this->assertEquals($mailed->headers['from'], 'from@example.com');
+        $this->assertEquals($mailed->headers['subject'], 'SUBJECT SAMPLE');
+        $this->assertContains(
+                // 5
+                "あいうえお\r\n".
+                // 100
+                "あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\r\n".
+                // 行間あけ
+                "\r\n\r\n\r\n".
+                "TEST\r\n".
+                "\r\n\r\n\r\n".
+                // 半角全角まじり
+                "123456あいうえおあいうえお０１２３４５６７８９あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお\r\n"
         , $mailed->body);
     }
 }

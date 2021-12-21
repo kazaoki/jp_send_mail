@@ -1,6 +1,6 @@
 <?php
 /**
- * jp_send_mail() v1.2.0
+ * jp_send_mail() v1.2.1
  * ちょうどいい感じの日本語メール送信関数
  *
  * $result = jp_send_mail([
@@ -18,6 +18,7 @@
  *     'phpable'       => false, // false以外だとメールアドレス・件名・本文がPHPとして実行されます。キー=>値の配列指定することで変数が使えるようになります。
  *     'startline'     => 1,     // 本文上部の改行が数を指定します。標準では1です。
  *     'force_hankana' => false, // エンコードがUTF-8以外の場合、安全のため半角カタカナを全角に変換しますが、これをtrueにすると変換処理を行いません。（非推奨）
+ *     'wrap'          => false, // 折り返す半角文字数。未指定なら78。false で折返ししない
  * ]);
  * ※複数のメールアドレスを指定したい場合はカンマ区切りではなく配列でセットすること。
  */
@@ -71,6 +72,7 @@ function jp_send_mail($args)
             return $data;
         }
     };
+
     // BASE64文字列の畳み込み解除する関数定義（EdMaxだと畳み込み途中で文字化けるため）
     $func_unfold_base64 = function($base64_str) {
         return preg_replace("/\?\=\s+\=\?ISO-2022-JP\?B\?/", '', $base64_str);
@@ -89,7 +91,7 @@ function jp_send_mail($args)
     if(!preg_match('/^utf\-?8$/i', $encoding)) {
         if(!@$args['force_hankana']) {
             foreach($args as $key=>$value) {
-                if(is_array($value)) continue;
+                if(is_array($value) || !strlen($args[$key])) continue;
                 $args[$key] = mb_convert_kana($value, 'KV', $original_encoding);
             }
         }
@@ -136,7 +138,11 @@ function jp_send_mail($args)
     // body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $args['body'] = mb_convert_encoding(
-        $func_mb_wordwrap($args['body'], 78, "\r\n", $original_encoding),
+        (
+            false===@$args['wrap']
+                ? $args['body']
+                : $func_mb_wordwrap($args['body'], (@$args['wrap']>0 ? $args['wrap'] : 78), "\r\n", $original_encoding)
+        ),
         $encoding,
         $original_encoding
     );
