@@ -1,6 +1,10 @@
 <?php
+
+// バージョン
+define('__JP_SEND_MAIL_VERSION__', '1.2.2');
+
 /**
- * jp_send_mail() v1.2.1
+ * jp_send_mail()
  * ちょうどいい感じの日本語メール送信関数
  *
  * $result = jp_send_mail([
@@ -138,7 +142,7 @@ function jp_send_mail($args)
     // body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $args['body'] = mb_convert_encoding(
-        (
+        preg_replace("/\r\n|\r|\n/u", "\n", // 本文の改行コードをLFに統一
             false===@$args['wrap']
                 ? $args['body']
                 : $func_mb_wordwrap($args['body'], (@$args['wrap']>0 ? $args['wrap'] : 78), "\r\n", $original_encoding)
@@ -168,13 +172,18 @@ function jp_send_mail($args)
         }
     }
 
+    // MIMEヘッダー追加
+    $headers[] = 'MIME-Version: 1.0';
+
+    // X-Mailerヘッダー追加
+    $headers[] = 'X-Mailer: jp_send_mail() '.__JP_SEND_MAIL_VERSION__.' (https://kantaro-cgi.com/blog/php/php-jp_send_mail.html)';
+
     // 添付ファイル処理
     if(@$args['files'] && is_array($args['files']) && count($args['files'])) {
 
         // ヘッダー追加
         $boundary = '----=_Boundary_' . uniqid(rand(1000,9999) . '_') . '_';
         $headers[] = 'Content-Type: multipart/mixed; boundary="'.$boundary.'"';
-        $headers[] = 'MIME-Version: 1.0';
         $headers[] = 'Content-Transfer-Encoding: 7bit';
 
         // 本文追加
