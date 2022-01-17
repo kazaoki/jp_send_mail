@@ -138,6 +138,9 @@ module.exports.config = {
         // db: [
         //     ['/var/log/mysql/query.log', ['-ci', 'green']],
         // ],
+        mail: [
+            ['/var/log/php/error.log', ['-ci', 'green']],
+        ],
     },
 
     /**
