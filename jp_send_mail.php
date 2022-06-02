@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.2.3b');
+define('__JP_SEND_MAIL_VERSION__', '1.3.0');
 
 /**
  * jp_send_mail()
@@ -233,7 +233,7 @@ function jp_send_mail($args)
         $args['to'],
         $args['subject'],
         $args['body'],
-        implode("\r\n", $headers),
+        implode("\n", $headers),
         implode(' ', $parameters)
     );
 
