@@ -30,6 +30,8 @@ class filesTest extends TestCase
                 __DIR__.'/attach-files/ireland-1985088_1920.jpg',
                 'dog2.jpg' => __DIR__.'/attach-files/dog-01.jpg',
                 'いっぬ⑩.jpg' => __DIR__.'/attach-files/dog-01.jpg',
+                array('DDDD.jpg' => __DIR__.'/attach-files/dog-01.jpg'),
+                array('DDDD.jpg' => __DIR__.'/attach-files/dog-01.jpg'), // array()で書くことで同名ファイルがアップできるように。
             ),
             'headers' => array('X-MailDev-Key'=>$maildev_key),
         ));
@@ -68,6 +70,20 @@ class filesTest extends TestCase
         $this->assertEquals($file3->ctype_secondary, 'octet-stream');
         $this->assertEquals(mb_convert_encoding($file3->ctype_parameters['name'], 'utf-8', 'ISO-2022-JP-MS'), 'いっぬ⑩.jpg');
         $this->assertEquals(strlen($file3->body), 161314);
+
+        // 添付４パート
+        $file4 = $mailed->parts[4];
+        $this->assertEquals($file4->ctype_primary, 'application');
+        $this->assertEquals($file4->ctype_secondary, 'octet-stream');
+        $this->assertEquals(mb_convert_encoding($file4->ctype_parameters['name'], 'utf-8', 'ISO-2022-JP-MS'), 'DDDD.jpg');
+        $this->assertEquals(strlen($file4->body), 161314);
+
+        // 添付５パート
+        $file5 = $mailed->parts[5];
+        $this->assertEquals($file5->ctype_primary, 'application');
+        $this->assertEquals($file5->ctype_secondary, 'octet-stream');
+        $this->assertEquals(mb_convert_encoding($file5->ctype_parameters['name'], 'utf-8', 'ISO-2022-JP-MS'), 'DDDD.jpg');
+        $this->assertEquals(strlen($file5->body), 161314);
     }
 
     /**

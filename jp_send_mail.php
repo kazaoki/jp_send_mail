@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.0');
+define('__JP_SEND_MAIL_VERSION__', '1.3.1');
 
 /**
  * jp_send_mail()
@@ -204,6 +204,12 @@ function jp_send_mail($args)
 
         // ファイル展開
         foreach($args['files'] as $key=>$value) {
+            // さらに下の配列も展開。同名ファイルを選択できるように。
+            if(is_array($value)) {
+                $v = array_keys($value);
+                $key = $v[0];
+                $value = $value[$key];
+            }
             $filename = 'integer'===gettype($key) ? basename($value) : $key;
             $filename = mb_convert_encoding($filename, $encoding, $original_encoding);
             $filename = '=?ISO-2022-JP?B?' . base64_encode($filename) . '?=';
