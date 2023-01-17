@@ -48,8 +48,10 @@ module.exports.config = {
 
         // PHP
         php: {
-            image: 'kazaoki/phpenv:5.3.3', // ここにあるバージョンから → https://hub.docker.com/r/kazaoki/phpenv/tags
-            // image: 'kazaoki/phpenv:7.2.5', // ここにあるバージョンから → https://hub.docker.com/r/kazaoki/phpenv/tags
+            // image: 'kazaoki/phpenv:5.3.3', // ← composer install 動かじ
+            // image: 'kazaoki/phpenv:5.3.6', // ← composer install 途中で死
+            image: 'kazaoki/phpenv:5.3.9',
+            // image: 'kazaoki/phpenv:7.2.5',
             // ↑ コメントアウトするとlampman標準のPHP使用(5.4とか)
             error_report: true, // 本番環境の場合は必ずfalseに。
             xdebug_start: true, // 本番環境の場合は必ずfalseに。
