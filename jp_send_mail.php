@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.1');
+define('__JP_SEND_MAIL_VERSION__', '1.3.2');
 
 /**
  * jp_send_mail()
@@ -15,7 +15,7 @@ define('__JP_SEND_MAIL_VERSION__', '1.3.1');
  *     'cc'            => '',    // CC※
  *     'bcc'           => '',    // BCC※
  *     'reply'         => '',    // Reply-To
- *     'f'             => '',    // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分が使用されます。falseにすると無視）
+ *     'f'             => '',    // -fで指定するメールアドレス（未指定なら whoami ?: fromのメールアドレス部分 が使用されます。falseにすると無視）
  *     'encoding'      => '',    // エンコード。未指定なら ISO-2022-JP-MS
  *     'headers'       => [],    // 追加ヘッダー配列を指定可能。
  *     'files'         => [],    // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
@@ -162,9 +162,12 @@ function jp_send_mail($args)
 
     // -f 処理
     if(false!==@$args['f']) {
-        if(!strlen(@$args['f'])) $args['f'] = $args['from'];
-        $set = $func_mail_split($args['f']);
-        if(is_array($set)) $args['f'] = $set[1];
+        if($whoami = trim(`whoami`)) {
+            $args['f'] = $whoami; // unixユーザー名を-f指定することでSPAM反映が軽減する場合がある模様
+        } else {
+            if(!strlen(@$args['f'])) $args['f'] = $args['from'];
+            $set = $func_mail_split($args['f']);
+        }
         $parameters[] = '-f '.$args['f'];
     }
 
