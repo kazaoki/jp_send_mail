@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.2');
+define('__JP_SEND_MAIL_VERSION__', '1.3.3');
 
 /**
  * jp_send_mail()
@@ -162,13 +162,15 @@ function jp_send_mail($args)
 
     // -f 処理
     if(false!==@$args['f']) {
-        if($whoami = trim(`whoami`)) {
-            $args['f'] = $whoami; // unixユーザー名を-f指定することでSPAM反映が軽減する場合がある模様
-        } else {
-            if(!strlen(@$args['f'])) $args['f'] = $args['from'];
-            $set = $func_mail_split($args['f']);
+        if(!strlen(@$args['f'])) {
+            if($whoami = trim(`whoami`)) {
+                $args['f'] = $whoami; // unixユーザー名を-f指定することでSPAM反映が軽減する場合がある模様
+            } else {
+                if(!strlen(@$args['f'])) $args['f'] = $args['from'];
+                $set = $func_mail_split($args['f']);
+            }
         }
-        $parameters[] = '-f '.$args['f'];
+        $parameters[] = '-f'.$args['f'];
     }
 
     // 追加ヘッダー処理
