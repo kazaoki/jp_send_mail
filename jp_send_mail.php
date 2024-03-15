@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.5');
+define('__JP_SEND_MAIL_VERSION__', '1.3.6');
 
 /**
  * jp_send_mail()
@@ -219,7 +219,7 @@ if (!function_exists('jp_send_mail')) {
                 }
                 $filename = 'integer'===gettype($key) ? basename($value) : $key;
                 $filename = mb_convert_encoding($filename, $encoding, $original_encoding);
-                $filename = '=?ISO-2022-JP?B?' . base64_encode($filename) . '?=';
+                $filename = ('ISO-2022-JP-MS'===$encoding ? '=?ISO-2022-JP?B?' : '=?'.$encoding . '?B?') . base64_encode($filename) . '?=';
                 $filepath = $value;
                 $args['body'] .=
                     "--{$boundary}\n".
