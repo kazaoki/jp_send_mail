@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.6');
+define('__JP_SEND_MAIL_VERSION__', '1.3.7');
 
 /**
  * jp_send_mail()
@@ -172,7 +172,7 @@ if (!function_exists('jp_send_mail')) {
         } else {
             // 未定義の場合は from のメールアドレス部分を出力
             $set = $func_mail_split($args['from']);
-            $parameters[] = '-f'.$set[1];
+            $parameters[] = '-f'.(is_array($set) ? $set[1] : $set);
         }
 
         // 追加ヘッダー処理
