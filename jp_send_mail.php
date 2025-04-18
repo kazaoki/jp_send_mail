@@ -1,7 +1,9 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.3.7');
+if(!defined('__JP_SEND_MAIL_VERSION__')) {
+    define('__JP_SEND_MAIL_VERSION__', '1.3.8');
+}
 
 /**
  * jp_send_mail()
