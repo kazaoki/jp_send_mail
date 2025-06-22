@@ -2,7 +2,7 @@
 
 // バージョン
 if(!defined('__JP_SEND_MAIL_VERSION__')) {
-    define('__JP_SEND_MAIL_VERSION__', '1.3.8');
+    define('__JP_SEND_MAIL_VERSION__', '1.3.9');
 }
 
 /**
@@ -49,14 +49,14 @@ if (!function_exists('jp_send_mail')) {
             $count = 0;
             foreach(mb_split("\r\n|\r|\n", $str) as $line) {
                 $pos = 0;
-                $strwidth = mb_strlen($line);
+                $strwidth = mb_strlen((string)$line);
                 if(!$strwidth) {
                     $result[] = '';
                     continue;
                 }
                 while($pos < $strwidth) {
-                    $result[] = mb_strimwidth($line, $pos, $width, '', $encoding);
-                    $pos += mb_strlen($result[@count($result)-1]);
+                    $result[] = mb_strimwidth((string)$line, $pos, $width, '', $encoding);
+                    $pos += mb_strlen((string)$result[@count((array)$result)-1]);
                 }
             }
             return implode($break, $result);
@@ -98,7 +98,7 @@ if (!function_exists('jp_send_mail')) {
         if(!preg_match('/^utf\-?8$/i', $encoding)) {
             if(!@$args['force_hankana']) {
                 foreach($args as $key=>$value) {
-                    if(is_array($value) || !strlen($args[$key])) continue;
+                    if(is_array($value) || !strlen((string)$args[$key])) continue;
                     $args[$key] = mb_convert_kana($value, 'KV', $original_encoding);
                 }
             }
@@ -113,8 +113,8 @@ if (!function_exists('jp_send_mail')) {
             if(!isset($args[$key])) continue;
             if(@$args['phpable']) $args[$key] = $func_phpable($args[$key]);
             $addresses = $args[$key];
-            if(is_array($addresses) && !count($addresses)) continue;
-            if(!is_array($addresses) && !strlen($addresses)) continue;
+            if(is_array($addresses) && !count((array)$addresses)) continue;
+            if(!is_array($addresses) && !strlen((string)$addresses)) continue;
             if('from'===$key && is_array($addresses)) return false;
             if('reply'===$key && is_array($addresses)) return false;
             if(!is_array($addresses)) $addresses = array($addresses);
@@ -159,14 +159,14 @@ if (!function_exists('jp_send_mail')) {
 
         // 本文の頭に改行追加（標準:1）
         $args['body'] =
-            str_repeat("\n", strlen(@$args['startline']) ? $args['startline'] : 1) .
+            str_repeat("\n", strlen((string)@$args['startline']) ? $args['startline'] : 1) .
             $args['body']
         ;
 
         // -f 処理
         if(isset($args['f'])) {
             if(false!==$args['f']) {
-                if(strlen($args['f'])) {
+                if(strlen((string)$args['f'])) {
                     // 指定値があればそれ使う
                     $parameters[] = '-f'.$args['f'];
                 }
@@ -191,7 +191,7 @@ if (!function_exists('jp_send_mail')) {
         $headers[] = 'X-Mailer: jp_send_mail() '.__JP_SEND_MAIL_VERSION__.' (https://kantaro-cgi.com/blog/php/php-jp_send_mail.html)';
 
         // 添付ファイル処理
-        if(@$args['files'] && is_array($args['files']) && count($args['files'])) {
+        if(@$args['files'] && is_array($args['files']) && count((array)$args['files'])) {
 
             // ヘッダー追加
             $boundary = '----=_Boundary_' . uniqid(rand(1000,9999) . '_') . '_';
