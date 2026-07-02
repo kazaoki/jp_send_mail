@@ -2,7 +2,7 @@
 
 // バージョン
 if(!defined('__JP_SEND_MAIL_VERSION__')) {
-    define('__JP_SEND_MAIL_VERSION__', '1.3.9');
+    define('__JP_SEND_MAIL_VERSION__', '1.4.0');
 }
 
 /**
@@ -64,7 +64,7 @@ if (!function_exists('jp_send_mail')) {
 
         // 文字列をPHPとして実行する関数定義（配列のまま突っ込んでも再帰します）
         $func_phpable = function($data) use(&$func_phpable, $args) {
-            if(@$args['phpable'] && is_array($args['phpable'])) extract($args['phpable']);
+            if(isset($args['phpable']) && is_array($args['phpable'])) extract($args['phpable']);
             if(is_array($data)) {
                 $new_data = array();
                 foreach($data as $item) {
@@ -86,7 +86,7 @@ if (!function_exists('jp_send_mail')) {
         };
 
         // 送信エンコーディングの設定
-        $encoding = @$args['encoding'] ?: 'ISO-2022-JP-MS';
+        $encoding = isset($args['encoding']) ? $args['encoding'] : 'ISO-2022-JP-MS';
 
         // オリジナルの言語環境を保管（ISO-8859-1の場合はUTF-8に強制変換）
         $original_encoding = 'ISO-8859-1'===mb_internal_encoding()
@@ -96,7 +96,7 @@ if (!function_exists('jp_send_mail')) {
 
         // エンコーディングがUTF-8ではない場合、半角カタカナを全角カタカナに強制変換する
         if(!preg_match('/^utf\-?8$/i', $encoding)) {
-            if(!@$args['force_hankana']) {
+            if(empty($args['force_hankana'])) {
                 foreach($args as $key=>$value) {
                     if(is_array($value) || !strlen((string)$args[$key])) continue;
                     $args[$key] = mb_convert_kana($value, 'KV', $original_encoding);
@@ -111,7 +111,7 @@ if (!function_exists('jp_send_mail')) {
         // メールアドレス処理
         foreach(array('to', 'from', 'cc', 'bcc', 'reply') as $key) {
             if(!isset($args[$key])) continue;
-            if(@$args['phpable']) $args[$key] = $func_phpable($args[$key]);
+            if(!empty($args['phpable'])) $args[$key] = $func_phpable($args[$key]);
             $addresses = $args[$key];
             if(is_array($addresses) && !count((array)$addresses)) continue;
             if(!is_array($addresses) && !strlen((string)$addresses)) continue;
@@ -139,18 +139,18 @@ if (!function_exists('jp_send_mail')) {
         }
 
         // subject処理
-        if(@$args['phpable']) $args['subject'] = $func_phpable($args['subject']);
+        if(!empty($args['phpable'])) $args['subject'] = $func_phpable($args['subject']);
         $args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
 
         // body処理
-        if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
+        if(!empty($args['phpable'])) $args['body'] = $func_phpable($args['body']);
         $keep_mb_regex_encoding = mb_regex_encoding();
         mb_regex_encoding(mb_internal_encoding());
         $args['body'] = mb_convert_encoding(
             mb_ereg_replace("\r\n?", "\n", // 本文の改行コードをLFに統一
-                false===@$args['wrap']
+                (isset($args['wrap']) && false===$args['wrap'])
                     ? $args['body']
-                    : $func_mb_wordwrap($args['body'], (@$args['wrap']>0 ? $args['wrap'] : 78), "\r\n", $original_encoding)
+                    : $func_mb_wordwrap($args['body'], (isset($args['wrap']) && $args['wrap'] > 0 ? $args['wrap'] : 78), "\r\n", $original_encoding)
             ),
             $encoding,
             $original_encoding
@@ -159,7 +159,7 @@ if (!function_exists('jp_send_mail')) {
 
         // 本文の頭に改行追加（標準:1）
         $args['body'] =
-            str_repeat("\n", strlen((string)@$args['startline']) ? $args['startline'] : 1) .
+            str_repeat("\n", (isset($args['startline']) && strlen((string)$args['startline'])) ? $args['startline'] : 1) .
             $args['body']
         ;
 
@@ -178,7 +178,7 @@ if (!function_exists('jp_send_mail')) {
         }
 
         // 追加ヘッダー処理
-        if(@$args['headers'] && is_array($args['headers'])) {
+        if(isset($args['headers']) && is_array($args['headers'])) {
             foreach($args['headers'] as $key=>$value) {
                 $headers[] = $key . ': ' . $value;
             }
@@ -191,7 +191,7 @@ if (!function_exists('jp_send_mail')) {
         $headers[] = 'X-Mailer: jp_send_mail() '.__JP_SEND_MAIL_VERSION__.' (https://kantaro-cgi.com/blog/php/php-jp_send_mail.html)';
 
         // 添付ファイル処理
-        if(@$args['files'] && is_array($args['files']) && count((array)$args['files'])) {
+        if(isset($args['files']) && is_array($args['files']) && count((array)$args['files'])) {
 
             // ヘッダー追加
             $boundary = '----=_Boundary_' . uniqid(rand(1000,9999) . '_') . '_';
