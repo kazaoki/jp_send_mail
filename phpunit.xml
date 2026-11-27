@@ -3,12 +3,11 @@
 <phpunit
     colors="true"
     verbose="false">
->
     <php>
         <!-- <env name="SHOW_AUTO_INCREMENT_RESET" value="true" /> -->
     </php>
     <testsuites>
-        <testsuite name="SlimSkeleton">
+        <testsuite name="jp_send_mail">
             <file>tests/testTo.php</file>
             <file>tests/testFrom.php</file>
             <file>tests/testCc.php</file>
