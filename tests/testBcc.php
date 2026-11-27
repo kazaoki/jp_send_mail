@@ -17,7 +17,7 @@ class BccTest extends TestCase
     /**
      * bccにラベルなしのメールアドレスをセットした場合のテスト
      */
-    public function testCcNormal()
+    public function testBccNormal()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -47,7 +47,7 @@ class BccTest extends TestCase
     /**
      * bccにラベルありのメールアドレスをセットした場合のテスト（ASCIIラベル）
      */
-    public function testCcWithLabel()
+    public function testBccWithLabel()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -77,7 +77,7 @@ class BccTest extends TestCase
     /**
      * bccにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）
      */
-    public function testCcWithLabelByMultibyte()
+    public function testBccWithLabelByMultibyte()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -107,7 +107,7 @@ class BccTest extends TestCase
     /**
      * bccにラベルありのメールアドレスをセットした場合のテスト（日本語ラベル）（丸数字などのMS文字）
      */
-    public function testCcWithLabelByMultibytePlusMS()
+    public function testBccWithLabelByMultibytePlusMS()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
@@ -137,7 +137,7 @@ class BccTest extends TestCase
     /**
      * bccにカンマ区切りで複数指定
      */
-    public function testCcAnyWithComma()
+    public function testBccAnyWithComma()
     {
         // メール送信
         $maildev_key = md5(uniqid(rand(),1));
