@@ -2,7 +2,7 @@
 
 // バージョン
 if(!defined('__JP_SEND_MAIL_VERSION__')) {
-    define('__JP_SEND_MAIL_VERSION__', '1.4.0');
+    define('__JP_SEND_MAIL_VERSION__', '1.4.1');
 }
 
 /**
@@ -36,8 +36,11 @@ if (!function_exists('jp_send_mail')) {
             return preg_match('/^\s*(.*?)\s*<([^<>]+)>\s*$/', $mail, $matches) ? array($matches[1], $matches[2]) : $mail;
         };
 
-        // メールアドレスのDNSをチェックする関数定義
+        // メールアドレスの形式とDNSをチェックする関数定義
+        // 空白や改行を含むアドレスは、ヘッダーインジェクションや sendmail の引数インジェクション（-f 経由）につながるため、DNSチェックの前に形式チェックで弾く
         $func_is_mail = function($mail) {
+            if(!is_string($mail) || preg_match('/\s/', $mail)) return false;
+            if(false === filter_var($mail, FILTER_VALIDATE_EMAIL)) return false;
             $host = str_replace(array('[', ']'), '', substr($mail, strpos($mail, '@') + 1));
             return (checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'));
         };
@@ -123,7 +126,8 @@ if (!function_exists('jp_send_mail')) {
                 $set = $func_mail_split($address);
                 if(is_array($set)) {
                     if(!$func_is_mail($set[1])) return false;
-                    $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
+                    $label = str_replace(array("\r", "\n"), '', $set[0]); // 表示名に改行を混ぜない（ヘッダーインジェクション対策）
+                    $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($label, $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
                     $values[] = $encoded;
                 } else {
                     if(!$func_is_mail($address)) return false;
@@ -140,6 +144,7 @@ if (!function_exists('jp_send_mail')) {
 
         // subject処理
         if(!empty($args['phpable'])) $args['subject'] = $func_phpable($args['subject']);
+        $args['subject'] = str_replace(array("\r", "\n"), '', (string)$args['subject']); // 件名に改行を混ぜない（ヘッダーインジェクション対策）
         $args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
 
         // body処理
@@ -163,23 +168,28 @@ if (!function_exists('jp_send_mail')) {
             $args['body']
         ;
 
-        // -f 処理
+        // -f 処理（値はメールアドレス形式チェックを通し、シェル引数として安全に渡す。sendmail の引数インジェクション対策）
         if(isset($args['f'])) {
             if(false!==$args['f']) {
                 if(strlen((string)$args['f'])) {
-                    // 指定値があればそれ使う
-                    $parameters[] = '-f'.$args['f'];
+                    // 指定値があればそれ使う（ラベル形式ならメールアドレス部分だけを取り出す）
+                    $f_set = $func_mail_split($args['f']);
+                    $f_addr = is_array($f_set) ? $f_set[1] : $f_set;
+                    if(!is_string($f_addr) || preg_match('/\s/', $f_addr) || false === filter_var($f_addr, FILTER_VALIDATE_EMAIL)) return false;
+                    $parameters[] = '-f'.escapeshellarg($f_addr);
                 }
             }
         } else {
-            // 未定義の場合は from のメールアドレス部分を出力
+            // 未定義の場合は from のメールアドレス部分を出力（from は上で形式チェック済み）
             $set = $func_mail_split($args['from']);
-            $parameters[] = '-f'.(is_array($set) ? $set[1] : $set);
+            $parameters[] = '-f'.escapeshellarg(is_array($set) ? $set[1] : $set);
         }
 
         // 追加ヘッダー処理
         if(isset($args['headers']) && is_array($args['headers'])) {
             foreach($args['headers'] as $key=>$value) {
+                // 改行混入によるヘッダーインジェクションを防ぐ
+                if(preg_match('/[\r\n]/', (string)$key) || preg_match('/[\r\n]/', (string)$value)) return false;
                 $headers[] = $key . ': ' . $value;
             }
         }
