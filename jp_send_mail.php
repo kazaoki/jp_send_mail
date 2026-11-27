@@ -67,7 +67,18 @@ if (!function_exists('jp_send_mail')) {
 
         // 文字列をPHPとして実行する関数定義（配列のまま突っ込んでも再帰します）
         $func_phpable = function($data) use(&$func_phpable, $args) {
-            if(isset($args['phpable']) && is_array($args['phpable'])) extract($args['phpable']);
+            // 入力値で内部変数（$data・$args など）を上書きしない。
+            // 変数名として正しいキーだけを、既にある変数を残したまま展開する。
+            if(isset($args['phpable']) && is_array($args['phpable'])) {
+                $vars = array();
+                foreach($args['phpable'] as $k=>$v) {
+                    if(!is_string($k) || !preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $k)) continue;
+                    if(in_array($k, array('data', 'args', 'func_phpable', 'new_data', 'item', 'this', 'GLOBALS', 'vars', 'k', 'v'), true)) continue;
+                    $vars[$k] = $v;
+                }
+                extract($vars, EXTR_SKIP);
+                unset($vars, $k, $v);
+            }
             if(is_array($data)) {
                 $new_data = array();
                 foreach($data as $item) {
@@ -116,6 +127,10 @@ if (!function_exists('jp_send_mail')) {
             if(!isset($args[$key])) continue;
             if(!empty($args['phpable'])) $args[$key] = $func_phpable($args[$key]);
             $addresses = $args[$key];
+            // 改行・NULLを含むアドレス（表示名側も含む）はヘッダーに入れず、送信を止める
+            foreach((array)$addresses as $address) {
+                if(preg_match('/[\r\n\0]/', (string)$address)) return false;
+            }
             if(is_array($addresses) && !count((array)$addresses)) continue;
             if(!is_array($addresses) && !strlen((string)$addresses)) continue;
             if('from'===$key && is_array($addresses)) return false;
@@ -126,8 +141,7 @@ if (!function_exists('jp_send_mail')) {
                 $set = $func_mail_split($address);
                 if(is_array($set)) {
                     if(!$func_is_mail($set[1])) return false;
-                    $label = str_replace(array("\r", "\n"), '', $set[0]); // 表示名に改行を混ぜない（ヘッダーインジェクション対策）
-                    $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($label, $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
+                    $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
                     $values[] = $encoded;
                 } else {
                     if(!$func_is_mail($address)) return false;
@@ -144,7 +158,8 @@ if (!function_exists('jp_send_mail')) {
 
         // subject処理
         if(!empty($args['phpable'])) $args['subject'] = $func_phpable($args['subject']);
-        $args['subject'] = str_replace(array("\r", "\n"), '', (string)$args['subject']); // 件名に改行を混ぜない（ヘッダーインジェクション対策）
+        // 改行・NULLを含む件名は送信を止める（ヘッダーインジェクション対策。MIMEエンコード後は正規の折り返しで改行が入るため、エンコード前にチェック）
+        if(preg_match('/[\r\n\0]/', (string)$args['subject'])) return false;
         $args['subject'] = $func_unfold_base64((mb_encode_mimeheader(mb_convert_encoding($args['subject'], $encoding, $original_encoding), $encoding)));
 
         // body処理
