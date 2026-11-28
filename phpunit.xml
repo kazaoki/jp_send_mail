@@ -23,6 +23,7 @@
             <file>tests/testStartline.php</file>
             <file>tests/testHankakuKana.php</file>
             <file>tests/testSecurity.php</file>
+            <file>tests/testSmtp.php</file>
         </testsuite>
     </testsuites>
     <filter>
