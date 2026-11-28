@@ -2,7 +2,7 @@
 
 // バージョン
 if(!defined('__JP_SEND_MAIL_VERSION__')) {
-    define('__JP_SEND_MAIL_VERSION__', '1.4.1');
+    define('__JP_SEND_MAIL_VERSION__', '1.5.0');
 }
 
 /**
@@ -18,6 +18,7 @@ if(!defined('__JP_SEND_MAIL_VERSION__')) {
  *     'bcc'           => '',    // BCC※
  *     'reply'         => '',    // Reply-To
  *     'f'             => '',    // -fで指定するメールアドレス（未指定ならfromのメールアドレス部分、設定ありならそれを使用、false指定ならf出力しない）
+ *     'smtp'          => null,  // 配列で host を指定すると mail() ではなく SMTP で直接送信します。['host'=>必須, 'port'=>省略可, 'secure'=>''|'ssl'|'tls', 'user'=>'', 'pass'=>'', 'helo'=>'', 'timeout'=>10, 'verify'=>true]
  *     'encoding'      => '',    // エンコード。未指定なら ISO-2022-JP-MS
  *     'headers'       => [],    // 追加ヘッダー配列を指定可能。
  *     'files'         => [],    // 添付ファイルを配列で指定可能。ファイルパスもしくは、key=>valueでファイル名指定可能です。
@@ -99,6 +100,107 @@ if (!function_exists('jp_send_mail')) {
             return preg_replace("/\?\=\s+\=\?ISO-2022-JP\?B\?/", '', $base64_str);
         };
 
+        // SMTPで直接送信する関数定義（'smtp' 指定時の送信層。メッセージの組み立ては既存処理に任せ、ここはSMTPの会話だけを行う）
+        $func_smtp_send = function($smtp, $from, $recipients, $message) {
+            // ホスト名に空白・改行が混ざっていたら接続しない（SMTPコマンドインジェクション対策）
+            if(!isset($smtp['host']) || !is_string($smtp['host']) || preg_match('/\s/', $smtp['host'])) return false;
+            if(!is_string($from) || !strlen($from) || !count((array)$recipients)) return false;
+
+            $secure  = isset($smtp['secure']) ? strtolower((string)$smtp['secure']) : '';
+            if(!in_array($secure, array('', 'ssl', 'tls'), true)) return false;
+            $port    = isset($smtp['port']) ? (int)$smtp['port'] : ('ssl'===$secure ? 465 : ('tls'===$secure ? 587 : 25));
+            $timeout = isset($smtp['timeout']) ? (int)$smtp['timeout'] : 10;
+            $helo    = (isset($smtp['helo']) && preg_match('/^[A-Za-z0-9.\-]+$/', (string)$smtp['helo']))
+                ? (string)$smtp['helo']
+                : ((isset($_SERVER['SERVER_NAME']) && preg_match('/^[A-Za-z0-9.\-]+$/', (string)$_SERVER['SERVER_NAME'])) ? (string)$_SERVER['SERVER_NAME'] : 'localhost');
+            $verify  = isset($smtp['verify']) ? (bool)$smtp['verify'] : true;
+
+            $context = stream_context_create(array('ssl' => array(
+                'verify_peer'      => $verify,
+                'verify_peer_name' => $verify,
+                'peer_name'        => $smtp['host'],
+                'SNI_enabled'      => true,
+            )));
+            $fp = @stream_socket_client(('ssl'===$secure ? 'ssl://' : 'tcp://') . $smtp['host'] . ':' . $port, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+            if(!$fp) return false;
+            stream_set_timeout($fp, $timeout);
+
+            // 応答読み取り（「250-...」形式の複数行応答に対応）。応答行の配列を返す
+            $func_read = function() use($fp) {
+                $lines = array();
+                while(true) {
+                    $line = fgets($fp, 512);
+                    if(false === $line) return false;
+                    $meta = stream_get_meta_data($fp);
+                    if(!empty($meta['timed_out'])) return false;
+                    $lines[] = rtrim($line, "\r\n");
+                    if(strlen($line) < 4 || '-' !== $line[3]) break; // 「250-」の間だけ続きを読み、「250 」「250」のみ等で終わる
+                }
+                return $lines;
+            };
+            // コマンド送信＋応答コードチェック。成功したら応答行の配列を返す
+            $func_cmd = function($command, $expect) use($fp, $func_read) {
+                if('' !== $command) fwrite($fp, $command . "\r\n");
+                $lines = $func_read();
+                if(false === $lines) return false;
+                $code = (int)substr($lines[0], 0, 3);
+                return in_array($code, (array)$expect, true) ? $lines : false;
+            };
+            $func_fail = function() use($fp) { fclose($fp); return false; };
+
+            // 接続時の挨拶
+            if(false === $func_cmd('', 220)) return $func_fail();
+
+            // EHLO（応答から拡張機能を取り出す）
+            $func_ehlo = function() use($func_cmd, $helo) {
+                $lines = $func_cmd('EHLO ' . $helo, 250);
+                if(false === $lines) return false;
+                $caps = array();
+                foreach($lines as $line) $caps[] = strtoupper(substr($line, 4));
+                return $caps;
+            };
+            $caps = $func_ehlo();
+            if(false === $caps) return $func_fail();
+
+            // STARTTLS（'tls' 指定時。暗号化できなければ送らない）
+            if('tls'===$secure) {
+                if(!in_array('STARTTLS', $caps, true)) return $func_fail();
+                if(false === $func_cmd('STARTTLS', 220)) return $func_fail();
+                if(true !== stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) return $func_fail();
+                $caps = $func_ehlo();
+                if(false === $caps) return $func_fail();
+            }
+
+            // 認証（PLAIN優先、なければLOGIN）
+            if(isset($smtp['user']) && strlen((string)$smtp['user'])) {
+                $user = (string)$smtp['user'];
+                $pass = isset($smtp['pass']) ? (string)$smtp['pass'] : '';
+                $auth_line = '';
+                foreach($caps as $cap) { if(0 === strpos($cap, 'AUTH ')) $auth_line = $cap; }
+                $authed = false;
+                if(false !== strpos($auth_line, 'PLAIN')) {
+                    $authed = false !== $func_cmd('AUTH PLAIN ' . base64_encode("\0" . $user . "\0" . $pass), 235);
+                } elseif(false !== strpos($auth_line, 'LOGIN')) {
+                    if(false !== $func_cmd('AUTH LOGIN', 334) && false !== $func_cmd(base64_encode($user), 334)) {
+                        $authed = false !== $func_cmd(base64_encode($pass), 235);
+                    }
+                }
+                if(!$authed) return $func_fail();
+            }
+
+            // エンベロープ（宛先はヘッダーではなくここで渡す。Bcc の宛先もここにだけ現れる）
+            if(false === $func_cmd('MAIL FROM:<' . $from . '>', 250)) return $func_fail();
+            foreach($recipients as $recipient) {
+                if(false === $func_cmd('RCPT TO:<' . $recipient . '>', array(250, 251))) return $func_fail();
+            }
+            if(false === $func_cmd('DATA', 354)) return $func_fail();
+            fwrite($fp, rtrim($message, "\r\n") . "\r\n.\r\n");
+            if(false === $func_cmd('', 250)) return $func_fail();
+            $func_cmd('QUIT', 221);
+            fclose($fp);
+            return true;
+        };
+
         // 送信エンコーディングの設定
         $encoding = isset($args['encoding']) ? $args['encoding'] : 'ISO-2022-JP-MS';
 
@@ -121,6 +223,9 @@ if (!function_exists('jp_send_mail')) {
         // 変数定義
         $headers = array();
         $parameters = array();
+        $envelope_recipients = array(); // SMTP送信用：エンベロープ宛先（To・Cc・Bcc のアドレス部分のみ）
+        $envelope_from = null;          // SMTP送信用：エンベロープ送信者
+        $bcc_header = null;             // Bccヘッダーは mail() 用に分けて持ち、SMTP の送信データには含めない
 
         // メールアドレス処理
         foreach(array('to', 'from', 'cc', 'bcc', 'reply') as $key) {
@@ -143,13 +248,20 @@ if (!function_exists('jp_send_mail')) {
                     if(!$func_is_mail($set[1])) return false;
                     $encoded = $func_unfold_base64(mb_encode_mimeheader(mb_convert_encoding($set[0], $encoding, $original_encoding), $encoding)).' <'.$set[1].'>';
                     $values[] = $encoded;
+                    $bare = $set[1];
                 } else {
                     if(!$func_is_mail($address)) return false;
                     $values[] = $address;
+                    $bare = $address;
                 }
+                // SMTP送信用にアドレス部分だけを控える
+                if(in_array($key, array('to', 'cc', 'bcc'), true)) $envelope_recipients[] = $bare;
+                if('from'===$key) $envelope_from = $bare;
             }
             if('to'===$key) {
                 $args['to'] = implode(', ', $values);
+            } elseif('bcc'===$key) {
+                $bcc_header = 'Bcc: '.implode(', ', $values);
             } else {
                 $label = 'reply'===$key ? 'Reply-To' : ucfirst($key);
                 $headers[] = $label.': '.implode(', ', $values);
@@ -192,6 +304,7 @@ if (!function_exists('jp_send_mail')) {
                     $f_addr = is_array($f_set) ? $f_set[1] : $f_set;
                     if(!is_string($f_addr) || preg_match('/\s/', $f_addr) || false === filter_var($f_addr, FILTER_VALIDATE_EMAIL)) return false;
                     $parameters[] = '-f'.escapeshellarg($f_addr);
+                    $envelope_from = $f_addr; // SMTP時は -f の値をエンベロープ送信者に使う
                 }
             }
         } else {
@@ -269,6 +382,20 @@ if (!function_exists('jp_send_mail')) {
         }
 
         // メール送信実行
+        if(isset($args['smtp']) && is_array($args['smtp']) && isset($args['smtp']['host']) && strlen((string)$args['smtp']['host'])) {
+            // SMTP送信（To・Subject はヘッダーとしてメッセージに含める。Bccヘッダーは含めず、宛先はエンベロープで渡す）
+            $smtp_message =
+                'To: ' . $args['to'] . "\r\n" .
+                'Subject: ' . $args['subject'] . "\r\n" .
+                implode("\r\n", $headers) . "\r\n\r\n" .
+                // 改行をCRLFに統一し、行頭のドットをエスケープ（ドットスタッフィング）
+                preg_replace('/^\./m', '..', preg_replace("/\r\n|\r|\n/", "\r\n", $args['body']))
+            ;
+            return $func_smtp_send($args['smtp'], $envelope_from, $envelope_recipients, $smtp_message);
+        }
+
+        // 通常送信（mail()。Bccヘッダーはここで合流させる）
+        if(null !== $bcc_header) $headers[] = $bcc_header;
         $result = mail(
             $args['to'],
             $args['subject'],
